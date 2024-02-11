@@ -3,8 +3,26 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "devDependencies": {
+    "@dbml/cli": "^3.1.5",
+    "concurrently": "^8.2.2",
+    "husky": "^9.0.10",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db:gen-sql:market-sentinel": "cd apps/market-sentinel && npx dbml2sql resources/db/schema.dbml --postgres -o resources/db/schema.sql",
+    "hooks:pre-push": "npm run lint && npm run test",
+    "lint:clj": "clj-kondo --lint apps libs --config .clj-kondo/config.edn",
+    "lint": "npm run lint:clj",
+    "prepare-project:market-sentinel": "cd apps/market-sentinel && clj -X:prepare",
+    "prepare-project": "concurrently npm:prepare-project:*",
+    "prepare": "husky",
+    "run:hello-world": "cd apps/hello-world && clj -X:run",
+    "test:hello-world": "cd apps/hello-world && clj -X:test",
+    "test:market-sentinel:integration": "cd apps/market-sentinel && bin/kaocha unit && bin/kaocha integration",
+    "test:market-sentinel:unit": "cd apps/market-sentinel && bin/kaocha unit && bin/kaocha unit",
+    "test": "concurrently npm:test:*"
   },
   "author": "",
   "license": "ISC",

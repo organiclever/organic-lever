@@ -1,0 +1,11 @@
+{:deps    {hello-lib/hello-lib                  {:local/root "../../libs/hello_lib"}
+           io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
+                                                 :git/sha "dfb30dd"}}
+
+ :aliases {:dev  {:extra-paths ["test"]}
+           :run  {:exec-fn hello/run}
+           :test {:extra-paths ["test"]
+                  :extra-deps  {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
+                                                                      :git/sha "dfb30dd"}}
+                  :main-opts   ["-m" "cognitect.test-runner"]
+                  :exec-fn     cognitect.test-runner.api/test}}}
