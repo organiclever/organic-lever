@@ -7,6 +7,9 @@
   [& _args]
 
   ;; add tmp dir for testing
+  (exec-sh-cmd "mkdir -p data/flat-files/stocks")
+
+  ;; add tmp dir for testing
   (exec-sh-cmd "mkdir -p test/tmp/")
   ;; setup test-runner
   (test-runner/setup nil))
