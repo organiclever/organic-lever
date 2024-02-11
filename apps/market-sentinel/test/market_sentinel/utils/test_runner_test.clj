@@ -13,6 +13,6 @@
       (is (.exists (io/file bin-kaocha)))
       (is (.exists (io/file bin-dir)))
 
-      (io/delete-file bin-kaocha :silently true)
-      (io/delete-file bin-dir :silently true)
-      (io/delete-file loc-prefix :silently true))))
+      (.delete (io/file bin-kaocha))
+      (.delete (io/file bin-dir))
+      (.delete (io/file loc-prefix)))))
