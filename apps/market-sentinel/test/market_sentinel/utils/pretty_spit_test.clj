@@ -2,8 +2,7 @@
   (:require [clojure.data.json :as json]
             [clojure.edn :as edn]
             [clojure.test :refer [deftest is testing]]
-            [market-sentinel.utils.pretty-spit :refer [pretty-spit-edn
-                                                       pretty-spit-json]]))
+            [market-sentinel.utils.pretty-spit :refer [pretty-spit-edn pretty-spit-json]]))
 
 (deftest pretty-spit-edn-test
   (testing "pretty-spit-edn produce the correct output"
