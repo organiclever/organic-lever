@@ -15,6 +15,13 @@
                      :growth-1y-weight  2
                      :growth-5y-weight  5}))
 
+(defn get-1y-growth-expectation [growth-1y-percent growth-5y-percent]
+  (/ (+ (* (/ growth-1y-percent 100) (:growth-1y-weight stock-params))
+        (*
+         (expt (/ growth-5y-percent 100) (/ 1 5))
+         (:growth-5y-weight stock-params)))
+     (+ (:growth-1y-weight stock-params) (:growth-5y-weight stock-params))))
+
 (defn generate-ticker-analysis [fundamental-data]
   (let [{:keys [reference]}              fundamental-data
         {:keys [trailing-pe
@@ -22,15 +29,15 @@
         ;; TODO: get it from the API
         growth-1y-percent                17.06
         growth-5y-percent                190.5
-        growth-1y-expectation            (/ (+ (* (/ growth-1y-percent 100) (:growth-1y-weight stock-params))
-                                               (*
-                                                (expt (/ growth-5y-percent 100) (/ 1 5))
-                                                (:growth-5y-weight stock-params)))
-                                            (+ (:growth-1y-weight stock-params) (:growth-5y-weight stock-params)))]
+        growth-1y-expectation            (get-1y-growth-expectation growth-1y-percent growth-5y-percent)]
     (into {}
           [fundamental-data
-           {:analysis {:growth-target-by-trailing-pe (- (+ 1 growth-1y-expectation) (/ trailing-pe (:pe-healthy-target stock-params)))
-                       :growth-target-by-forward-pe  (-  (+ 1 growth-1y-expectation) (/ forward-pe (:pe-healthy-target stock-params)))
+           {:analysis {:growth-target-by-trailing-pe (-
+                                                      (+ 1 growth-1y-expectation)
+                                                      (/ trailing-pe (:pe-healthy-target stock-params)))
+                       :growth-target-by-forward-pe  (-
+                                                      (+ 1 growth-1y-expectation)
+                                                      (/ forward-pe (:pe-healthy-target stock-params)))
                        :growth-1y-expectation        growth-1y-expectation}}])))
 
 (comment
