@@ -32,6 +32,8 @@
        (map first)
        (map clojure.string/upper-case)))
 
+(:General (load-ticker-data-from-edn "AAPL" "fundamental"))
+
 (defn load-ticker-fundamental
   [ticker]
   (let
@@ -39,7 +41,11 @@
     cleaned-data (->>
                   data
                   (select-nested-keys-and-rename
-                   [[:trailing-pe [:Valuation :TrailingPE]]
+                   [[:name [:General :Name]]
+                    [:code [:General :Code]]
+                    [:sector [:General :Sector]]
+                    [:industry [:General :Industry]]
+                    [:trailing-pe [:Valuation :TrailingPE]]
                     [:forward-pre [:Valuation :ForwardPE]]
                     [:profit-margin [:Highlights :ProfitMargin]]
                     [:dividend-yield [:Highlights :DividendYield]]
@@ -52,12 +58,13 @@
                     [:analyst-buy [:AnalystRatings :Buy]]
                     [:analyst-hold [:AnalystRatings :Hold]]
                     [:analyst-sell [:AnalystRatings :Sell]]
-                    [:analyst-strong-sell [:AnalystRatings :StrongSell]]]))]
-    (into cleaned-data [])))
+                    [:analyst-strong-sell [:AnalystRatings :StrongSell]]
+                    [:updated-at [:General :UpdatedAt]]]))]
+    (into {:reference cleaned-data} [])))
 
 (defn load-tickers-fundamentals [tickers]
   (let [fundamentals (map load-ticker-fundamental tickers)]
-    (map hash-map tickers fundamentals)))
+    (into [] fundamentals)))
 
 (defn load-persisted-tickers-fundamentals
   []
