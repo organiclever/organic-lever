@@ -7,7 +7,9 @@
            org.postgresql/postgresql            {:mvn/version "42.6.0"}
            metosin/malli                        {:mvn/version "0.11.0"}
            com.github.seancorfield/honeysql     {:mvn/version "2.4.1045"}
-           org.clojure/tools.namespace          {:mvn/version "1.4.5"}}
+           org.clojure/tools.namespace          {:mvn/version "1.4.5"}
+           org.clojure/math.numeric-tower       {:mvn/version "0.0.5"}}
+
  :aliases {:dev       {:extra-paths ["test"]}
            :run       {:exec-fn core/-main}
            :prepare   {:exec-fn market-sentinel.prepare/prepare-project}

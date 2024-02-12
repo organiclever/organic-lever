@@ -46,7 +46,7 @@
                     [:sector [:General :Sector]]
                     [:industry [:General :Industry]]
                     [:trailing-pe [:Valuation :TrailingPE]]
-                    [:forward-pre [:Valuation :ForwardPE]]
+                    [:forward-pe [:Valuation :ForwardPE]]
                     [:profit-margin [:Highlights :ProfitMargin]]
                     [:dividend-yield [:Highlights :DividendYield]]
                     [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
