@@ -16,12 +16,11 @@
                      :growth-5y-weight  5}))
 
 (defn get-1y-growth-expectation [growth-1y-percent growth-5y-percent]
-  (/
-   (+ (* (/ growth-1y-percent 100) (:growth-1y-weight stock-params))
-      (*
-       (expt (/ growth-5y-percent 100) (/ 1 5))
-       (:growth-5y-weight stock-params)))
-   (+ (:growth-1y-weight stock-params) (:growth-5y-weight stock-params))))
+  (/ (+ (* (/ growth-1y-percent 100) (:growth-1y-weight stock-params))
+        (*
+         (expt (/ growth-5y-percent 100) (/ 1 5))
+         (:growth-5y-weight stock-params)))
+     (+ (:growth-1y-weight stock-params) (:growth-5y-weight stock-params))))
 
 (defn generate-ticker-analysis [fundamental-data]
   (let [{:keys [reference]}              fundamental-data
