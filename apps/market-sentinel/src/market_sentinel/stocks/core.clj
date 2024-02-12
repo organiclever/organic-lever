@@ -1,8 +1,10 @@
 (ns market-sentinel.stocks.core
-  (:require [market-sentinel.stocks.fundamentals :refer [fetch-and-persist-tickers-fundamentals load-persisted-tickers-fundamentals]]
-            [clojure.math.numeric-tower :refer [expt]]))
+  (:require [clojure.math.numeric-tower :refer [expt]]
+            [market-sentinel.stocks.fundamentals :refer [fetch-and-persist-tickers-fundamentals
+                                                         load-persisted-tickers-fundamentals]]
+            [market-sentinel.utils.col-extractor :refer [select-nested-keys]]))
 
-(def tickers ["AAPL" "GOOG" "NVDA"])
+(def tickers ["NVDA" "QCOM" "TSM" "CELH"])
 
 (def stock-params (let [pe-nasdaq-avg            25.03
                         pe-snp-500-avg           23.27
@@ -25,15 +27,19 @@
                                                 (expt (/ growth-5y-percent 100) (/ 1 5))
                                                 (:growth-5y-weight stock-params)))
                                             (+ (:growth-1y-weight stock-params) (:growth-5y-weight stock-params)))]
-    (into {}  [fundamental-data
-               {:analysis {:growth-target-by-trailing-pe (- (+ 1 growth-1y-expectation) (/ trailing-pe (:pe-healthy-target stock-params)))
-                           :growth-target-by-forward-pe  (-  (+ 1 growth-1y-expectation) (/ forward-pe (:pe-healthy-target stock-params)))
-                           :growth-1y-expectation        growth-1y-expectation}}])))
-
-(->>  (load-persisted-tickers-fundamentals)
-      (map
-       generate-ticker-analysis))
+    (into {}
+          [fundamental-data
+           {:analysis {:growth-target-by-trailing-pe (- (+ 1 growth-1y-expectation) (/ trailing-pe (:pe-healthy-target stock-params)))
+                       :growth-target-by-forward-pe  (-  (+ 1 growth-1y-expectation) (/ forward-pe (:pe-healthy-target stock-params)))
+                       :growth-1y-expectation        growth-1y-expectation}}])))
 
 (comment
   (fetch-and-persist-tickers-fundamentals tickers)
-  (load-persisted-tickers-fundamentals))
+  (load-persisted-tickers-fundamentals)
+  (->>  (load-persisted-tickers-fundamentals)
+        (map
+         generate-ticker-analysis)
+        (map (fn [m] (select-nested-keys [[:reference :code]
+                                          [:analysis :growth-target-by-trailing-pe]
+                                          [:analysis :growth-target-by-forward-pe]
+                                          [:analysis :growth-1y-expectation]] m)))))
