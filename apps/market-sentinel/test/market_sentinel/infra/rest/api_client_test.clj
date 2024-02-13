@@ -16,6 +16,7 @@
                   "api/test")]
       (is (= "http://localhost/api/test" (:url result)))
       (is (= {:headers {"Content-Type" "application/json"}} (:config result)))))
+  ;; TODO: add test for query params
   (testing "gen-call-rest macro produce the right function for 3 args"
     (let [result ((gen-call-rest base-url base-config)
                   mock-method
