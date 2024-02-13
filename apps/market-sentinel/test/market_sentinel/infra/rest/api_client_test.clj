@@ -22,5 +22,6 @@
                   "api/test"
                   {:params {:id 1}})]
       (is (= "http://localhost/api/test" (:url result)))
-      (is (= {:headers {"Content-Type" "application/json"}
-              :params  {:id 1}} (:config result))))))
+      (is (= {:headers      {"Content-Type" "application/json"}
+              :params       {:id 1}
+              :query-params nil} (:config result))))))

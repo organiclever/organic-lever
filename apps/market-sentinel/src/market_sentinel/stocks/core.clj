@@ -1,5 +1,6 @@
 (ns market-sentinel.stocks.core
   (:require [clojure.math.numeric-tower :refer [expt]]
+            [market-sentinel.stocks.eod :refer [fetch-and-persist-tickers-eod-bundle]]
             [market-sentinel.stocks.fundamentals :refer [fetch-and-persist-tickers-fundamentals
                                                          load-persisted-tickers-fundamentals]]
             [market-sentinel.utils.col-extractor :refer [select-nested-keys]]))
@@ -12,8 +13,10 @@
                     {:nasdaq-avg-pe     pe-nasdaq-avg
                      :snp-500-avg-pe    pe-snp-500-avg
                      :pe-healthy-target (* pe-snp-500-avg (- 1 (/ pe-safety-margin-percent 100)))
+                     :growth-6mo-weight 1
                      :growth-1y-weight  2
-                     :growth-5y-weight  5}))
+                     :growth-3y-weight  3
+                     :growth-5y-weight  4}))
 
 (defn get-1y-growth-expectation [growth-1y-percent growth-5y-percent]
   (/ (+ (* (/ growth-1y-percent 100) (:growth-1y-weight stock-params))
@@ -29,19 +32,20 @@
         ;; TODO: get it from the API
         growth-1y-percent                17.06
         growth-5y-percent                190.5
-        growth-1y-expectation            (get-1y-growth-expectation growth-1y-percent growth-5y-percent)]
+        growth-1y-expectation-percent    (get-1y-growth-expectation growth-1y-percent growth-5y-percent)]
     (into {}
           [fundamental-data
            {:analysis {:growth-target-by-trailing-pe (-
-                                                      (+ 1 growth-1y-expectation)
+                                                      (+ 1 growth-1y-expectation-percent)
                                                       (/ trailing-pe (:pe-healthy-target stock-params)))
                        :growth-target-by-forward-pe  (-
-                                                      (+ 1 growth-1y-expectation)
+                                                      (+ 1 growth-1y-expectation-percent)
                                                       (/ forward-pe (:pe-healthy-target stock-params)))
-                       :growth-1y-expectation        growth-1y-expectation}}])))
+                       :growth-1y-expectation        growth-1y-expectation-percent}}])))
 
 (comment
   (fetch-and-persist-tickers-fundamentals tickers)
+  (fetch-and-persist-tickers-eod-bundle tickers)
   (load-persisted-tickers-fundamentals)
   (->>  (load-persisted-tickers-fundamentals)
         (map

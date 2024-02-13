@@ -8,4 +8,5 @@
       (method# (str ~base-url "/"  res-url#) ~base-config))
      ([method# res-url# additional-config#]
       (method# (str ~base-url "/"  res-url#)
-               (merge ~base-config additional-config#)))))
+               (let [q-params# (merge (:query-params ~base-config) (:query-params additional-config#))]
+                 (merge ~base-config additional-config# {:query-params q-params#}))))))
