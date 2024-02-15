@@ -32,8 +32,6 @@
        (map first)
        (map clojure.string/upper-case)))
 
-(:General (load-ticker-data-from-edn "AAPL" "fundamental"))
-
 (defn load-ticker-fundamental
   [ticker]
   (let
