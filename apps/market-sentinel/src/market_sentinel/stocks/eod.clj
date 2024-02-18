@@ -38,13 +38,6 @@
                    [ticker (fetch-ticker-eods from to ticker)])
                  tickers))))
 
-(->>  (fetch-tickers-eods 3 ["AAPL" "MSFT"])
-      (map (fn [[ticker eods]]
-             (map (fn [eod]
-                    (assoc eod :code ticker))
-                  eods)))
-      (flatten))
-
 (defn store-tickers-eods!
   "store-ticker-eod! will store the end of day data for a given ticker in the database."
   [tickers-eods]

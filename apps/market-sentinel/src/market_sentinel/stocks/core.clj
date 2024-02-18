@@ -4,7 +4,7 @@
                                                 store-tickers-eods!]]
             [market-sentinel.stocks.fundamentals
              :refer [fetch-ticker-fundamentals get-ticker-fundamental
-                     store-tickers-fundamentals]]
+                     store-tickers-fundamentals!]]
             [market-sentinel.stocks.tickers :refer [extract-all-stock-tickers]]))
 
 (def stock-params (let [pe-nasdaq-avg            25.03
@@ -33,15 +33,16 @@
         growth-1y-percent                17.06
         growth-5y-percent                190.5
         growth-1y-expectation-percent    (get-1y-growth-expectation growth-1y-percent growth-5y-percent)]
-    (into {}
-          [fundamental-data
-           {:analysis {:growth-target-by-trailing-pe (-
-                                                      (+ 1 growth-1y-expectation-percent)
-                                                      (/ trailing-pe (:pe-healthy-target stock-params)))
-                       :growth-target-by-forward-pe  (-
-                                                      (+ 1 growth-1y-expectation-percent)
-                                                      (/ forward-pe (:pe-healthy-target stock-params)))
-                       :growth-1y-expectation        growth-1y-expectation-percent}}])))
+    (into
+     {}
+     [fundamental-data
+      {:analysis {:growth-target-by-trailing-pe (-
+                                                 (+ 1 growth-1y-expectation-percent)
+                                                 (/ trailing-pe (:pe-healthy-target stock-params)))
+                  :growth-target-by-forward-pe  (-
+                                                 (+ 1 growth-1y-expectation-percent)
+                                                 (/ forward-pe (:pe-healthy-target stock-params)))
+                  :growth-1y-expectation        growth-1y-expectation-percent}}])))
 
 (comment
   ;; get fundamental data
@@ -50,7 +51,7 @@
         (fn [m] (->> (:code  m)
                      (fetch-ticker-fundamentals)
                      (get-ticker-fundamental))))
-       (store-tickers-fundamentals))
+       (store-tickers-fundamentals!))
   ;; get eod data
   (->> (extract-all-stock-tickers)
        (map (fn [m]  (:code  m)))

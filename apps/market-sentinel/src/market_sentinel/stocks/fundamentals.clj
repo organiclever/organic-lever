@@ -49,7 +49,7 @@
                       {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
     (into  cleaned-data [])))
 
-(defn store-tickers-fundamentals
+(defn store-tickers-fundamentals!
   "store-tickers-fundamentals will store the fundamentals of a given list of tickers"
   [tickers-fundamentals]
 
