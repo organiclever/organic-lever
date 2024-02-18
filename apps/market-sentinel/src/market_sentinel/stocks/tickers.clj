@@ -20,7 +20,7 @@
         :do-update-set {:fields [:code :exchange]}})))
 
 (defn extract-all-stock-tickers
-  "extract-stock-tickers extract all stock tickers from the database"
+  "extract-all-stock-tickers extract all stock tickers from the database"
   []
   (jdbc/execute!
    ds
