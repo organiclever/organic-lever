@@ -1,11 +1,10 @@
 (ns market-sentinel.stocks.core
   (:require [clojure.math.numeric-tower :refer [expt]]
-            [market-sentinel.stocks.eod :refer [extract-and-store-tickers-eod-bundle]]
-            [market-sentinel.stocks.fundamentals :refer [fetch-and-store-tickers-fundamentals
-                                                         load-persisted-tickers-fundamentals]]
-            [market-sentinel.utils.col-extractor :refer [select-nested-keys]]))
-
-(def tickers ["NVDA" "QCOM" "TSM" "CELH"])
+            [market-sentinel.stocks.fundamentals
+             :refer [fetch-ticker-fundamentals
+                     get-ticker-fundamental
+                     store-tickers-fundamentals]]
+            [market-sentinel.stocks.tickers :refer [extract-all-stock-tickers]]))
 
 (def stock-params (let [pe-nasdaq-avg            25.03
                         pe-snp-500-avg           23.27
@@ -44,13 +43,10 @@
                        :growth-1y-expectation        growth-1y-expectation-percent}}])))
 
 (comment
-  (fetch-and-store-tickers-fundamentals tickers)
-  (extract-and-store-tickers-eod-bundle tickers)
-  (load-persisted-tickers-fundamentals)
-  (->>  (load-persisted-tickers-fundamentals)
-        (map
-         analyze-ticker)
-        (map (fn [m] (select-nested-keys [[:reference :code]
-                                          [:analysis :growth-target-by-trailing-pe]
-                                          [:analysis :growth-target-by-forward-pe]
-                                          [:analysis :growth-1y-expectation]] m)))))
+  (->> (extract-all-stock-tickers)
+      ;;  (take 3)
+       (map
+        (fn [m] (->> (:code  m)
+                     (fetch-ticker-fundamentals)
+                     (get-ticker-fundamental))))
+       (store-tickers-fundamentals)))

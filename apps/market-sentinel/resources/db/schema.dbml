@@ -71,7 +71,7 @@ Table market_sentinel.stock_fundamentals_history {
   "forward_pe" varchar
   "profit_margin" float
   "dividend_yield" float
-  "operating_margin-ttm" float
+  "operating_margin_ttm" float
   "market_capitalization" float
   "created_at" timestamp [default: `now()`]
   "updated_at" timestamp [default: `now()`]
@@ -82,7 +82,7 @@ Table market_sentinel.stock_fundamentals_history {
     "forward_pe"
     "profit_margin"
     "dividend_yield"
-    "operating_margin-ttm"
+    "operating_margin_ttm"
     "market_capitalization"
     "updated_at"
   }

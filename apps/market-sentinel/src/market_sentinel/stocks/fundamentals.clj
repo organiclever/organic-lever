@@ -1,74 +1,107 @@
 (ns market-sentinel.stocks.fundamentals
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
-            [clojure.java.io :as clojure.java.io]
-            [clojure.string :as clojure.string]
+            [honey.sql :as sql]
+            [market-sentinel.infra.db.core :refer [ds]]
             [market-sentinel.stocks.infra :refer [call-stocks-api]]
-            [market-sentinel.stocks.utils :refer [extract-ticker-data-from-edn
-                                                  load-ticker-data-as-edn]]
-            [market-sentinel.utils.col-extractor :refer [select-nested-keys-and-rename]]))
+            [market-sentinel.utils.col-extractor :refer [select-nested-keys-and-rename]]
+            [next.jdbc :as jdbc]))
 
-(def fetch-ticker-fundamentals
-  (fn [ticker]
-    (->
-     (call-stocks-api
-      client/get
-      (str "fundamentals/" ticker))
-     :body
-     (json/read-str :key-fn keyword))))
-
-(defn fetch-and-store-tickers-fundamentals
-  [tickers]
-  (doseq [ticker tickers]
-    (->> ticker
-         fetch-ticker-fundamentals
-         (load-ticker-data-as-edn ticker "fundamental"))))
-
-(defn list-stored-tickers
-  []
-  (->> (seq (.list (clojure.java.io/file "data/flat-files/stocks")))
-       (filter (fn [x] (.contains x "fundamental")))
-       (map (fn [x] (clojure.string/split x #"-")))
-       (map first)
-       (map clojure.string/upper-case)))
-
-(defn extract-ticker-fundamental
+(defn fetch-ticker-fundamentals
+  "fetch-ticker-fundamentals will fetch the fundamentals of a given ticker"
   [ticker]
-  (let
-   [data         (extract-ticker-data-from-edn ticker "fundamental")
-    cleaned-data (->>
-                  data
-                  (select-nested-keys-and-rename
-                   [[:name [:General :Name]]
-                    [:code [:General :Code]]
-                    [:sector [:General :Sector]]
-                    [:industry [:General :Industry]]
-                    [:trailing-pe [:Valuation :TrailingPE]]
-                    [:forward-pe [:Valuation :ForwardPE]]
-                    [:profit-margin [:Highlights :ProfitMargin]]
-                    [:dividend-yield [:Highlights :DividendYield]]
-                    [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
-                    [:market-capitalization [:Highlights :MarketCapitalization]]
-                    [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
-                    [:analyst-rating [:AnalystRatings :Rating]]
-                    [:analyst-target-price [:AnalystRatings :TargetPrice]]
-                    [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
-                    [:analyst-buy [:AnalystRatings :Buy]]
-                    [:analyst-hold [:AnalystRatings :Hold]]
-                    [:analyst-sell [:AnalystRatings :Sell]]
-                    [:analyst-strong-sell [:AnalystRatings :StrongSell]]
-                    [:updated-at [:General :UpdatedAt]]]))]
-    (into {:reference cleaned-data} [])))
+  (println (str "Fetching fundamentals data for " ticker))
+  (->
+   (call-stocks-api
+    client/get
+    (str "fundamentals/" ticker))
+   :body
+   (json/read-str :key-fn keyword)))
 
-(defn get-tickers-fundamentals [tickers]
-  (let [fundamentals (map extract-ticker-fundamental tickers)]
-    (into [] fundamentals)))
+(defn get-ticker-fundamental
+  "get-ticker-fundamental will extract cleaned fundamental data of a given ticker"
+  [ticker-fundamental]
+  (let [picked-data  (->>
+                      ticker-fundamental
+                      (select-nested-keys-and-rename
+                       [[:name [:General :Name]]
+                        [:code [:General :Code]]
+                        [:description [:General :Description]]
+                        [:sector [:General :Sector]]
+                        [:industry [:General :Industry]]
+                        [:trailing-pe [:Valuation :TrailingPE]]
+                        [:forward-pe [:Valuation :ForwardPE]]
+                        [:profit-margin [:Highlights :ProfitMargin]]
+                        [:dividend-yield [:Highlights :DividendYield]]
+                        [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
+                        [:market-capitalization [:Highlights :MarketCapitalization]]
+                        [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
+                        [:analyst-rating [:AnalystRatings :Rating]]
+                        [:analyst-target-price [:AnalystRatings :TargetPrice]]
+                        [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
+                        [:analyst-buy [:AnalystRatings :Buy]]
+                        [:analyst-hold [:AnalystRatings :Hold]]
+                        [:analyst-sell [:AnalystRatings :Sell]]
+                        [:analyst-strong-sell [:AnalystRatings :StrongSell]]
+                        [:updated-at [:General :UpdatedAt]]]))
+        cleaned-data (merge picked-data {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
 
-(defn load-persisted-tickers-fundamentals
-  []
-  (get-tickers-fundamentals (list-stored-tickers)))
+    (into  cleaned-data [])))
 
-(comment
-  (fetch-and-store-tickers-fundamentals ["AAPL" "GOOG"])
-  (extract-ticker-fundamental "AAPL")
-  (get-tickers-fundamentals ["AAPL" "GOOG"]))
+(defn store-tickers-fundamentals
+  "store-tickers-fundamentals will store the fundamentals of a given list of tickers"
+  [tickers-fundamentals]
+
+  (jdbc/with-transaction [tx ds]
+    ;; save general info
+    (jdbc/execute!
+     tx (sql/format
+         {:insert-into   :market-sentinel.stock_general_info
+          :values        (map
+                          (fn [{:keys [code name description sector industry]}]
+                            {:stock_ticker_code code
+                             :name              name
+                             :description       description
+                             :sector            sector
+                             :industry          industry})
+                          tickers-fundamentals)
+          :on-conflict   [:stock_ticker_code]
+          :do-update-set {:fields [:stock_ticker_code :name :description :sector :industry]}}))
+    ;; save consensus history
+    (jdbc/execute!
+     tx
+     (sql/format
+      {:insert-into   :market-sentinel.stock_consensus_history
+       :values        (map
+                       (fn [{:keys [code wallstreet-target-price analyst-rating analyst-target-price analyst-strong-buy analyst-buy analyst-hold analyst-sell analyst-strong-sell]}]
+                         {:stock_ticker_code       code
+                          :wallstreet_target_price wallstreet-target-price
+                          :analyst_rating          analyst-rating
+                          :analyst_target_price    analyst-target-price
+                          :analyst_strong_buy      analyst-strong-buy
+                          :analyst_buy             analyst-buy
+                          :analyst_hold            analyst-hold
+                          :analyst_sell            analyst-sell
+                          :analyst_strong_sell     analyst-strong-sell})
+                       tickers-fundamentals)
+       :on-conflict   [:stock_ticker_code]
+       :do-update-set {:fields [:stock_ticker_code :wallstreet_target_price :analyst_rating :analyst_target_price :analyst_strong_buy :analyst_buy :analyst_hold :analyst_sell :analyst_strong_sell]}}))
+    ;; store fundamentals history
+    (jdbc/execute!
+     tx
+     (sql/format
+      {:insert-into   :market-sentinel.stock_fundamentals_history
+       :values        (map
+                       (fn [{:keys [code trailing-pe forward-pe profit-margin dividend-yield operating-margin-ttm market-capitalization]}]
+                         {:stock_ticker_code     code
+                          :trailing_pe           trailing-pe
+                          :forward_pe            forward-pe
+                          :profit_margin         profit-margin
+                          :dividend_yield        dividend-yield
+                          :operating_margin_ttm  operating-margin-ttm
+                          :market_capitalization market-capitalization})
+                       tickers-fundamentals)
+       :on-conflict   [:stock_ticker_code]
+       :do-update-set {:fields [:stock_ticker_code :trailing_pe :forward_pe :profit_margin :dividend_yield :operating_margin_ttm :market_capitalization :updated_at]}}))))
+
+(comment)
