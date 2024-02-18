@@ -5,8 +5,8 @@
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]))
 
-(defn load-stock-tickers!
-  "load-stock-tickrers! load tickers data in postgres database, it will use upsert strategies"
+(defn store-stock-tickers!
+  "store-stock-tickrers! Store tickers data in postgres database, it will use upsert strategies"
   [stock_tickers]
   (jdbc/execute!
    ds (sql/format
@@ -29,6 +29,6 @@
    {:builder-fn rs/as-unqualified-lower-maps}))
 
 (comment
-  (load-stock-tickers!
+  (store-stock-tickers!
    (edn/read-string (slurp "data/seeds/stock_tickers.edn")))
   (extract-all-stock-tickers))

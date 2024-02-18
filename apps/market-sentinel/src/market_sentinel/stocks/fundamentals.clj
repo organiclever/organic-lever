@@ -4,8 +4,8 @@
             [clojure.java.io :as clojure.java.io]
             [clojure.string :as clojure.string]
             [market-sentinel.stocks.infra :refer [call-stocks-api]]
-            [market-sentinel.stocks.utils :refer [load-ticker-data-from-edn
-                                                  save-ticker-data-as-edn]]
+            [market-sentinel.stocks.utils :refer [extract-ticker-data-from-edn
+                                                  load-ticker-data-as-edn]]
             [market-sentinel.utils.col-extractor :refer [select-nested-keys-and-rename]]))
 
 (def fetch-ticker-fundamentals
@@ -17,14 +17,14 @@
      :body
      (json/read-str :key-fn keyword))))
 
-(defn fetch-and-persist-tickers-fundamentals
+(defn fetch-and-store-tickers-fundamentals
   [tickers]
   (doseq [ticker tickers]
     (->> ticker
          fetch-ticker-fundamentals
-         (save-ticker-data-as-edn ticker "fundamental"))))
+         (load-ticker-data-as-edn ticker "fundamental"))))
 
-(defn list-persisted-tickers
+(defn list-stored-tickers
   []
   (->> (seq (.list (clojure.java.io/file "data/flat-files/stocks")))
        (filter (fn [x] (.contains x "fundamental")))
@@ -32,10 +32,10 @@
        (map first)
        (map clojure.string/upper-case)))
 
-(defn load-ticker-fundamental
+(defn extract-ticker-fundamental
   [ticker]
   (let
-   [data         (load-ticker-data-from-edn ticker "fundamental")
+   [data         (extract-ticker-data-from-edn ticker "fundamental")
     cleaned-data (->>
                   data
                   (select-nested-keys-and-rename
@@ -60,15 +60,15 @@
                     [:updated-at [:General :UpdatedAt]]]))]
     (into {:reference cleaned-data} [])))
 
-(defn load-tickers-fundamentals [tickers]
-  (let [fundamentals (map load-ticker-fundamental tickers)]
+(defn get-tickers-fundamentals [tickers]
+  (let [fundamentals (map extract-ticker-fundamental tickers)]
     (into [] fundamentals)))
 
 (defn load-persisted-tickers-fundamentals
   []
-  (load-tickers-fundamentals (list-persisted-tickers)))
+  (get-tickers-fundamentals (list-stored-tickers)))
 
 (comment
-  (fetch-and-persist-tickers-fundamentals ["AAPL" "GOOG"])
-  (load-ticker-fundamental "AAPL")
-  (load-tickers-fundamentals ["AAPL" "GOOG"]))
+  (fetch-and-store-tickers-fundamentals ["AAPL" "GOOG"])
+  (extract-ticker-fundamental "AAPL")
+  (get-tickers-fundamentals ["AAPL" "GOOG"]))

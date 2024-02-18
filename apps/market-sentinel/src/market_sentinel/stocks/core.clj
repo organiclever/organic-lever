@@ -1,7 +1,7 @@
 (ns market-sentinel.stocks.core
   (:require [clojure.math.numeric-tower :refer [expt]]
-            [market-sentinel.stocks.eod :refer [fetch-and-persist-tickers-eod-bundle]]
-            [market-sentinel.stocks.fundamentals :refer [fetch-and-persist-tickers-fundamentals
+            [market-sentinel.stocks.eod :refer [extract-and-store-tickers-eod-bundle]]
+            [market-sentinel.stocks.fundamentals :refer [fetch-and-store-tickers-fundamentals
                                                          load-persisted-tickers-fundamentals]]
             [market-sentinel.utils.col-extractor :refer [select-nested-keys]]))
 
@@ -25,7 +25,7 @@
          (:growth-5y-weight stock-params)))
      (+ (:growth-1y-weight stock-params) (:growth-5y-weight stock-params))))
 
-(defn generate-ticker-analysis [fundamental-data]
+(defn analyze-ticker [fundamental-data]
   (let [{:keys [reference]}              fundamental-data
         {:keys [trailing-pe
                 forward-pe]} reference
@@ -44,12 +44,12 @@
                        :growth-1y-expectation        growth-1y-expectation-percent}}])))
 
 (comment
-  (fetch-and-persist-tickers-fundamentals tickers)
-  (fetch-and-persist-tickers-eod-bundle tickers)
+  (fetch-and-store-tickers-fundamentals tickers)
+  (extract-and-store-tickers-eod-bundle tickers)
   (load-persisted-tickers-fundamentals)
   (->>  (load-persisted-tickers-fundamentals)
         (map
-         generate-ticker-analysis)
+         analyze-ticker)
         (map (fn [m] (select-nested-keys [[:reference :code]
                                           [:analysis :growth-target-by-trailing-pe]
                                           [:analysis :growth-target-by-forward-pe]

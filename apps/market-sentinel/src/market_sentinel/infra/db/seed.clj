@@ -1,11 +1,11 @@
 (ns market-sentinel.infra.db.seed
   (:require [clojure.edn :as edn]
-            [market-sentinel.stocks.tickers :refer [load-stock-tickers!]]))
+            [market-sentinel.stocks.tickers :refer [store-stock-tickers!]]))
 
 (defn seed-tickers! []
   (println "Seeding tickers...")
   (let [stock_tickers (edn/read-string (slurp "data/seeds/stock_tickers.edn"))]
-    (load-stock-tickers! stock_tickers))
+    (store-stock-tickers! stock_tickers))
   (println "Tickers seeded..."))
 
 (defn seed!
