@@ -4,7 +4,7 @@
             [next.jdbc :as jdbc]))
 
 (defn load-stock-tickers!
-  "load-stock-tickrers! stores tickers data in postgres database, it will use upsert strategies"
+  "load-stock-tickrers! load tickers data in postgres database, it will use upsert strategies"
   [stock_tickers]
   (jdbc/execute!
    ds (sql/format
