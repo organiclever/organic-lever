@@ -42,6 +42,7 @@ Table market_sentinel.stock_highlights {
   }
 }
 
+// TODO: add unique identifier
 Table market_sentinel.stock_consensus_history {
   "stock_ticker_code" varchar [ref: > market_sentinel.stock_tickers.code]
   "wallstreet_target_price" float
@@ -65,6 +66,7 @@ Table market_sentinel.stock_consensus_history {
   }
 }
 
+// TODO: add unique identifier
 Table market_sentinel.stock_fundamentals_history {
   "stock_ticker_code" varchar [ref: > market_sentinel.stock_tickers.code]
   "trailing_pe" varchar
@@ -88,6 +90,7 @@ Table market_sentinel.stock_fundamentals_history {
   }
 }
 
+// TODO: add unique identifier
 Table market_sentinel.stock_islamic_compliance_history {
   "stock_ticker_code" varchar [ref: > market_sentinel.stock_tickers.code]
   "rating" int
@@ -98,6 +101,7 @@ Table market_sentinel.stock_islamic_compliance_history {
   }
 }
 
+// TODO: add unique identifier
 Table market_sentinel.stock_market_highlights_history {
   "stock_ticker_code" varchar [ref: > market_sentinel.stock_tickers.code]
   "average_trailing_pe" float

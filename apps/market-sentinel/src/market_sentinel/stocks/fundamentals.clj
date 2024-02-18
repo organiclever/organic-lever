@@ -49,6 +49,12 @@
                       {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
     (into  cleaned-data [])))
 
+;; TODO: finish this function
+(defn extract_ticker_fundamentals
+  "extract_ticker_fundamentals will extract the fundamentals of a given ticker from the database"
+  [ticker]
+  (println (str "Extracting fundamentals data for " ticker)))
+
 (defn store-tickers-fundamentals!
   "store-tickers-fundamentals will store the fundamentals of a given list of tickers"
   [tickers-fundamentals]
