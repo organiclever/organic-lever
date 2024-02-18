@@ -1,7 +1,9 @@
 (ns market-sentinel.stocks.tickers
-  (:require [honey.sql :as sql]
+  (:require [clojure.edn :as edn]
+            [honey.sql :as sql]
             [market-sentinel.infra.db.core :refer [ds]]
-            [next.jdbc :as jdbc]))
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs]))
 
 (defn load-stock-tickers!
   "load-stock-tickrers! load tickers data in postgres database, it will use upsert strategies"
@@ -16,3 +18,17 @@
                         stock_tickers)
         :on-conflict   [:code]
         :do-update-set {:fields [:code :exchange]}})))
+
+(defn extract-stock-tickers
+  "extract-stock-tickers extract all stock tickers from the database"
+  []
+  (jdbc/execute!
+   ds
+   (sql/format {:select [:*]
+                :from   [:market-sentinel.stock_tickers]})
+   {:builder-fn rs/as-unqualified-lower-maps}))
+
+(comment
+  (load-stock-tickers!
+   (edn/read-string (slurp "data/seeds/stock_tickers.edn")))
+  (extract-stock-tickers))
