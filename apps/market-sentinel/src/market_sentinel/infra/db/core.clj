@@ -13,12 +13,12 @@
 
 (def ds (jdbc/get-datasource db-spec))
 
-(defn init-db
+(defn init-db!
   "init-db create all tables for market-sentinel. It accepts unused argument to be used with cli."
   [_]
   (jdbc/execute! ds [(slurp "resources/db/schema.sql")]))
 
-(defn delete-db
+(defn delete-db!
   "delete-db drop all tables for market-sentinel. It accepts unused argument to be used with cli."
   [_]
   (jdbc/execute!
@@ -28,15 +28,15 @@
      (get-in app_config [:db :dbschema])
      "\" CASCADE;")]))
 
-(defn reset-db
+(defn reset-db!
   "reset-db delete and init db according to schema.sql. It accepts unused argument to be used with cli."
   [_]
-  (delete-db nil)
-  (init-db nil))
+  (delete-db! nil)
+  (init-db! nil))
 
 (comment
   (jdbc/execute! ds (sql/format {:select [:*]
                                  :from   [:sentinel.teams]}))
-  (delete-db nil)
-  (init-db nil)
-  (reset-db nil))
+  (delete-db! nil)
+  (init-db! nil)
+  (reset-db! nil))

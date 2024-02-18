@@ -13,9 +13,9 @@
  :aliases {:dev       {:extra-paths ["test"]}
            :run       {:exec-fn core/-main}
            :prepare   {:exec-fn market-sentinel.prepare/prepare-project}
-           :db-init   {:exec-fn market-sentinel.infra.db.core/init-db}
-           :db-delete {:exec-fn market-sentinel.infra.db.core/delete-db}
-           :db-reset  {:exec-fn market-sentinel.infra.db.core/reset-db}
+           :db-init   {:exec-fn market-sentinel.infra.db.core/init-db!}
+           :db-delete {:exec-fn market-sentinel.infra.db.core/delete-db!}
+           :db-reset  {:exec-fn market-sentinel.infra.db.core/reset-db!}
            :db-seed   {:exec-fn market-sentinel.infra.db.seed/seed!}
            :test      {:extra-deps {lambdaisland/kaocha {:mvn/version "1.87.1366"}}
                        :main-opts  ["-m" "kaocha.runner"]}}}
