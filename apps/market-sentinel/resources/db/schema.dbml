@@ -1,36 +1,117 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
 
-// TODO: update this placeholder schema with our real schema
-Table sentinel.jira_users {
-  id varchar [primary key, unique]
-  display_name varchar
-  is_active boolean
-  account_type varchar
-  avatar_url_48x48 varchar
-  avatar_url_24x24 varchar
-  avatar_url_16x16 varchar
+Project market_sentinel {
+  database_type: 'PostgreSQL'
 }
 
-Table sentinel.teams {
-  id varchar [primary key]
-  name varchar [not null]
+Table market_sentinel.stock_tickers {
+  "code" varchar [pk, unique, not null]
+  "exchange" varchar
 
   indexes {
-    id
-    name
+    "code"
   }
 }
 
-Table sentinel.users {
-  email varchar [primary key]
-  name varchar [unique]
-  jira_user_id varchar [unique, ref: - sentinel.jira_users.id]
-  team varchar [ref: > sentinel.teams.id]
+Table market_sentinel.stock_general_info {
+  "stock_ticker_code" varchar [pk, ref: - market_sentinel.stock_tickers.code]
+  "name" varchar
+  "description" varchar
+  "sector" varchar
+  "industry" varchar
+  "updated_at" timestamp [default: `now()`]
+
+  indexes { 
+    "stock_ticker_code"
+    "sector"
+    "industry"
+  }
+}
+
+Table market_sentinel.stock_highlights {
+  "stock_ticker_code" varchar [pk, ref: - market_sentinel.stock_tickers.code]
+  "ol_rating_by_trailing_pe" float
+  "ol_rating_by_forward_pe" float
+  "updated_at" timestamp [default: `now()`]
 
   indexes {
-    email
-    jira_user_id
-    team
+    "stock_ticker_code"
+    "ol_rating_by_trailing_pe"
+    "ol_rating_by_forward_pe"
+  }
+}
+
+Table market_sentinel.stock_consensus_history {
+  "stock_ticker_code" varchar [pk, ref: > market_sentinel.stock_tickers.code]
+  "wallstreet_target_price" float
+  "analyst_rating" float
+  "analyst_target_price" float
+  "analyst_strong_buy" float
+  "analyst_buy" float
+  "analyst_hold" float
+  "analyst_sell" float
+  "analyst_strong_sell" float
+  "updated_at" timestamp [default: `now()`]
+
+  indexes {
+    "stock_ticker_code"
+    "analyst_rating"
+    "analyst_strong_buy"
+    "analyst_buy"
+    "analyst_hold"
+    "analyst_sell"
+    "analyst_strong_sell"
+  }
+}
+
+Table market_sentinel.stock_fundamentals_history {
+  "stock_ticker_code" varchar [pk, ref: > market_sentinel.stock_tickers.code]
+  "trailing_pe" varchar
+  "forward_pe" varchar
+  "profit_margin" float
+  "dividend_yield" float
+  "operating_margin-ttm" float
+  "market_capitalization" float
+  "created_at" timestamp [default: `now()`]
+  "updated_at" timestamp [default: `now()`]
+
+  indexes {
+    "stock_ticker_code"
+    "trailing_pe"
+    "forward_pe"
+    "profit_margin"
+    "dividend_yield"
+    "operating_margin-ttm"
+    "market_capitalization"
+    "updated_at"
+  }
+}
+
+Table market_sentinel.stock_islamic_compliance_history {
+  "stock_ticker_code" varchar [pk, ref: > market_sentinel.stock_tickers.code]
+  "rating" int
+
+  indexes {
+    "stock_ticker_code"
+    "rating"
+  }
+}
+
+Table market_sentinel.stock_market_highlights_history {
+  "stock_ticker_code" varchar [pk, ref: > market_sentinel.stock_tickers.code]
+  "average_trailing_pe" float
+  "average_forward_pe" float
+  "sector" varchar
+  "industry" varchar
+  "updated_at" timestamp [default: `now()`]
+
+  indexes {
+    "stock_ticker_code"
+    "average_trailing_pe"
+    "average_forward_pe"
+    "sector"
+    "industry"
+    "updated_at"
   }
 }

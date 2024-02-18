@@ -1,2 +1,3 @@
-{:db {:dbtype "postgres"
-      :dbname "market_sentinel_dev"}}
+{:db {:dbtype   "postgres"
+      :dbname   "market_sentinel_dev"
+      :dbschema "market_sentinel"}}

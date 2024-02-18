@@ -21,7 +21,12 @@
 (defn delete-db
   "delete-db drop all tables for market-sentinel. It accepts unused argument to be used with cli."
   [_]
-  (jdbc/execute! ds ["DROP SCHEMA IF EXISTS \"sentinel\" CASCADE;"]))
+  (jdbc/execute!
+   ds
+   [(str
+     "DROP SCHEMA IF EXISTS \""
+     (get-in app_config [:db :dbschema])
+     "\" CASCADE;")]))
 
 (defn reset-db
   "reset-db delete and init db according to schema.sql. It accepts unused argument to be used with cli."
