@@ -19,7 +19,7 @@
         :on-conflict   [:code]
         :do-update-set {:fields [:code :exchange]}})))
 
-(defn extract-stock-tickers
+(defn extract-all-stock-tickers
   "extract-stock-tickers extract all stock tickers from the database"
   []
   (jdbc/execute!
@@ -31,4 +31,4 @@
 (comment
   (load-stock-tickers!
    (edn/read-string (slurp "data/seeds/stock_tickers.edn")))
-  (extract-stock-tickers))
+  (extract-all-stock-tickers))
