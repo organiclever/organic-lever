@@ -1,8 +1,9 @@
 (ns market-sentinel.stocks.core
   (:require [clojure.math.numeric-tower :refer [expt]]
+            [market-sentinel.stocks.eod :refer [fetch-tickers-eods
+                                                store-tickers-eods!]]
             [market-sentinel.stocks.fundamentals
-             :refer [fetch-ticker-fundamentals
-                     get-ticker-fundamental
+             :refer [fetch-ticker-fundamentals get-ticker-fundamental
                      store-tickers-fundamentals]]
             [market-sentinel.stocks.tickers :refer [extract-all-stock-tickers]]))
 
@@ -43,9 +44,15 @@
                        :growth-1y-expectation        growth-1y-expectation-percent}}])))
 
 (comment
+  ;; get fundamental data
   (->> (extract-all-stock-tickers)
        (map
         (fn [m] (->> (:code  m)
                      (fetch-ticker-fundamentals)
                      (get-ticker-fundamental))))
-       (store-tickers-fundamentals)))
+       (store-tickers-fundamentals))
+  ;; get eod data
+  (->> (extract-all-stock-tickers)
+       (map (fn [m]  (:code  m)))
+       (fetch-tickers-eods (* 365 5))
+       (map (fn [[ticker eods]] (store-tickers-eods! {ticker eods})))))
