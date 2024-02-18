@@ -44,7 +44,6 @@
 
 (comment
   (->> (extract-all-stock-tickers)
-      ;;  (take 3)
        (map
         (fn [m] (->> (:code  m)
                      (fetch-ticker-fundamentals)
