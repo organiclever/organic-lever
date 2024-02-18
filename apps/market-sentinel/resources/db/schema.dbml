@@ -1,2 +1,36 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
+
+// TODO: update this placeholder schema with our real schema
+Table sentinel.jira_users {
+  id varchar [primary key, unique]
+  display_name varchar
+  is_active boolean
+  account_type varchar
+  avatar_url_48x48 varchar
+  avatar_url_24x24 varchar
+  avatar_url_16x16 varchar
+}
+
+Table sentinel.teams {
+  id varchar [primary key]
+  name varchar [not null]
+
+  indexes {
+    id
+    name
+  }
+}
+
+Table sentinel.users {
+  email varchar [primary key]
+  name varchar [unique]
+  jira_user_id varchar [unique, ref: - sentinel.jira_users.id]
+  team varchar [ref: > sentinel.teams.id]
+
+  indexes {
+    email
+    jira_user_id
+    team
+  }
+}
