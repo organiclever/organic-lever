@@ -17,8 +17,7 @@ pom.xml.asc
 .lsp
 .calva
 
-secrets.yaml
-secrets.edn
+app_secrets.edn
 node_modules
 secrets
 scratch.clj

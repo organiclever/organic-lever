@@ -19,4 +19,4 @@ pom.xml.asc
 profiles.clj
 scratch.clj
 secrets
-secrets.yaml
+app_secrets.edn
