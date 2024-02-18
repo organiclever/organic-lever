@@ -44,8 +44,9 @@
                         [:analyst-sell [:AnalystRatings :Sell]]
                         [:analyst-strong-sell [:AnalystRatings :StrongSell]]
                         [:updated-at [:General :UpdatedAt]]]))
-        cleaned-data (merge picked-data {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
-
+        cleaned-data (merge
+                      picked-data
+                      {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
     (into  cleaned-data [])))
 
 (defn store-tickers-fundamentals
