@@ -24,7 +24,7 @@
   []
   (jdbc/execute!
    ds
-   (sql/format {:select [:*]
+   (sql/format {:select [:code :exchange]
                 :from   [:market-sentinel.stock_tickers]})
    {:builder-fn rs/as-unqualified-lower-maps}))
 
