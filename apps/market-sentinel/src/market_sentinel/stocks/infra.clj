@@ -6,6 +6,6 @@
   (gen-call-rest
    "https://eodhd.com/api/"
    {:headers      {:Content-type "application/json"}
-    :query-params {:api_token (:api-key (:eodhd config/secrets))
+    :query-params {:api_token (:api-key (:eodhd config/app_secrets))
                    :fmt       "json"}
     :debug        false}))
