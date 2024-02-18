@@ -5,7 +5,7 @@ Hi there! Welcome to Market sentinel app.
 ## Up and Running Locally
 
 1. Make sure you read the root's [README](../../README.md).
-2. This app will need `secrets.edn` to present in the [config](./config/) folder. This file is not committed. You can see its file structure in the [secrets_example.edn file](./config/secrets_example.edn).
+2. This app will need `secrets.edn` to present in the project's root folder. This file is not committed. You can see its file structure in the [secrets_example.edn file](./secrets_example.edn).
 3. After that, execute the preparation script for this project `clj -X:prepare`. This prepare script will do 2 things:
    1. Create `test/tmp/` directory which will be used for testing.
    2. Setup Kaocha for testing.
