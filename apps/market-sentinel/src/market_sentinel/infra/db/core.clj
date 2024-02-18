@@ -1,13 +1,15 @@
 (ns market-sentinel.infra.db.core
   (:require [next.jdbc :as jdbc]
-            [honey.sql :as sql]))
+            [honey.sql :as sql]
+            [market-sentinel.config :refer [app_secrets app_config]]))
 
 ;; TODO: use env vars
-(def db-spec {:dbtype   "postgres"
-              :dbname   "postgres"
-              :user     "market-sentinel"
-              :password "market-sentinel-password"
-              :port     5432})
+(def db-spec {:dbtype   (get-in app_config [:db :dbtype])
+              :dbname   (get-in app_config [:db :dbname])
+              :host     (get-in app_secrets [:db :host])
+              :user     (get-in app_secrets [:db :user])
+              :password (get-in app_secrets [:db :password])
+              :port     (get-in app_secrets [:db :port])})
 
 (def ds (jdbc/get-datasource db-spec))
 
@@ -30,4 +32,6 @@
 (comment
   (jdbc/execute! ds (sql/format {:select [:*]
                                  :from   [:sentinel.teams]}))
+  (delete-db nil)
+  (init-db nil)
   (reset-db nil))

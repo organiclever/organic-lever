@@ -1,1 +1,2 @@
-{}
+{:db {:dbtype "postgres"
+      :dbname "market_sentinel_dev"}}
