@@ -7,30 +7,7 @@
             [market-sentinel.stocks.predictions :refer [extract-ticker-data-for-predictions predict-ticker store-tickers-predictions!]]
             [market-sentinel.stocks.tickers :refer [extract-all-stock-tickers]]))
 
-(defn do-all! []
-  ;; get fundamental data
-  (->> (extract-all-stock-tickers)
-       (map
-        (fn [m] (->> (:code  m)
-                     (fetch-ticker-fundamentals)
-                     (clean-ticker-fundamental))))
-       (store-tickers-fundamentals!))
-  ;; get eod data
-  (->> (extract-all-stock-tickers)
-       (map (fn [m]  (:code  m)))
-       (fetch-tickers-eods (* 365 5))
-       (map (fn [[ticker eods]] (store-tickers-eods! {ticker eods}))))
-  ;; generate prediction data
-  (->> (extract-all-stock-tickers)
-       (map (fn [ticker]
-              (->> ticker
-                   extract-ticker-data-for-predictions
-                   predict-ticker)))
-       (store-tickers-predictions!)))
-
 (comment
-  ;; do it all!
-  (do-all!)
   ;; get fundamental data
   (->> (extract-all-stock-tickers)
        (map
