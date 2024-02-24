@@ -25,7 +25,7 @@
 (def stock-params
   (let [pe-nasdaq-avg            25.03
         pe-snp-500-avg           23.27
-        pe-safety-margin-percent 25]
+        pe-safety-margin-percent 33]
     {:nasdaq-avg-pe     pe-nasdaq-avg
      :snp-500-avg-pe    pe-snp-500-avg
      :pe-healthy-target (*
@@ -44,7 +44,7 @@
         term-5y          (* avg-growth-5y growth-5y-weight)
         numerator        (+ term-1y term-5y)
         denominator      (+ growth-1y-weight growth-5y-weight)]
-    (* 100 (- (/ numerator denominator) 1))))
+    (- (* 100 (- (/ numerator denominator) 1)) 1)))
 (get-1y-growth-expectation 109.64  5244.17)
 
 (defn predict-ticker
@@ -58,16 +58,20 @@
                                    (:growth-5y-percent (:growth ticker-info)))
     pe-healthy-target             (:pe-healthy-target stock-params)]
 
-    {:stock-ticker-code            (:code (:ticker ticker-info))
-     :growth-target-by-trailing-pe (try (*
-                                         (+ 1 growth-1y-expectation-percent)
-                                         (/ pe-healthy-target trailing-pe))
-                                        (catch Exception _e nil))
-     :growth-target-by-forward-pe  (try (*
-                                         (+ 1 growth-1y-expectation-percent)
-                                         (/ pe-healthy-target forward-pe))
-                                        (catch Exception _e nil))
-     :growth-1y-expectation        growth-1y-expectation-percent}))
+    {:stock-ticker-code                (:code (:ticker ticker-info))
+     :profit_prediction-by-trailing-pe (try
+                                         (- (*
+                                             (+ 1 growth-1y-expectation-percent)
+                                             (/ pe-healthy-target trailing-pe))
+                                            1)
+                                         (catch Exception _e nil))
+     :profit_prediction-by-forward-pe  (try
+                                         (- (*
+                                             (+ 1 growth-1y-expectation-percent)
+                                             (/ pe-healthy-target forward-pe))
+                                            1)
+                                         (catch Exception _e nil))
+     :growth-1y-expectation            growth-1y-expectation-percent}))
 
 (defn store-tickers-predictions!
   "store-tickers-predictions! will store the predictions of the tickers in the database"
@@ -76,23 +80,16 @@
   (jdbc/execute!
    ds
    (sql/format
-    {:insert-into   :market-sentinel.stock_highlights
+    {:insert-into   :market-sentinel.stock_predictions
      :values        (map
-                     (fn [{:keys [stock-ticker-code growth-target-by-trailing-pe growth-target-by-forward-pe]}]
-                       {:stock_ticker_code         stock-ticker-code
-                        :wkf_rating_by_trailing_pe growth-target-by-trailing-pe
-                        :wkf_rating_by_forward_pe  growth-target-by-forward-pe})
+                     (fn [{:keys [stock-ticker-code profit_prediction-by-trailing-pe profit_prediction-by-forward-pe growth-1y-expectation]}]
+                       {:stock_ticker_code                stock-ticker-code
+                        :profit_prediction_by_trailing_pe profit_prediction-by-trailing-pe
+                        :profit_prediction_by_forward_pe  profit_prediction-by-forward-pe
+                        :growth_1y_prediction             growth-1y-expectation})
                      ticker-predictions)
      :on-conflict   [:stock_ticker_code]
-     :do-update-set {:fields [:stock_ticker_code :wkf_rating_by_trailing_pe :wkf_rating_by_forward_pe :updated_at]}})))
-
-(def a (->> (extract-all-stock-tickers)
-            (map (fn [ticker]
-                   (->> ticker
-                        extract-ticker-data-for-predictions
-                        predict-ticker)))
-            doall))
-(store-tickers-predictions! a)
+     :do-update-set {:fields [:stock_ticker_code :profit_prediction_by_trailing_pe :profit_prediction_by_forward_pe :growth_1y_prediction :updated_at]}})))
 
 (comment
   (->> {:code     "NVDA"

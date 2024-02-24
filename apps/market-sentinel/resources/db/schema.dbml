@@ -29,16 +29,18 @@ Table market_sentinel.stock_general_info {
   }
 }
 
-Table market_sentinel.stock_highlights {
+Table market_sentinel.stock_predictions {
   "stock_ticker_code" varchar [pk, ref: - market_sentinel.stock_tickers.code]
-  "wkf_rating_by_trailing_pe" float
-  "wkf_rating_by_forward_pe" float
+  "profit_prediction_by_trailing_pe" float
+  "profit_prediction_by_forward_pe" float
+  "growth_1y_prediction" float
   "updated_at" timestamp [default: `now()`]
 
   indexes {
     "stock_ticker_code"
-    "wkf_rating_by_trailing_pe"
-    "wkf_rating_by_forward_pe"
+    "profit_prediction_by_forward_pe"
+    "profit_prediction_by_trailing_pe"
+    "growth_1y_prediction" 
   }
 }
 
