@@ -5,7 +5,8 @@
             [market-sentinel.infra.db.core :refer [ds]]
             [market-sentinel.stocks.infra :refer [call-stocks-api]]
             [market-sentinel.utils.col-extractor :refer [select-nested-keys-and-rename]]
-            [next.jdbc :as jdbc]))
+            [next.jdbc :as jdbc])
+  (:import [java.time LocalDate]))
 
 (defn fetch-ticker-fundamentals
   "fetch-ticker-fundamentals will fetch the fundamentals of a given ticker"
@@ -80,8 +81,9 @@
      (sql/format
       {:insert-into   :market-sentinel.stock_consensus_history
        :values        (map
-                       (fn [{:keys [code wallstreet-target-price analyst-rating analyst-target-price analyst-strong-buy analyst-buy analyst-hold analyst-sell analyst-strong-sell]}]
+                       (fn [{:keys [code updated-at wallstreet-target-price analyst-rating analyst-target-price analyst-strong-buy analyst-buy analyst-hold analyst-sell analyst-strong-sell]}]
                          {:stock_ticker_code       code
+                          :date                    (LocalDate/parse updated-at)
                           :wallstreet_target_price wallstreet-target-price
                           :analyst_rating          analyst-rating
                           :analyst_target_price    analyst-target-price
@@ -91,7 +93,7 @@
                           :analyst_sell            analyst-sell
                           :analyst_strong_sell     analyst-strong-sell})
                        tickers-fundamentals)
-       :on-conflict   [:stock_ticker_code]
+       :on-conflict   [:stock_ticker_code :date]
        :do-update-set {:fields [:stock_ticker_code :wallstreet_target_price :analyst_rating :analyst_target_price :analyst_strong_buy :analyst_buy :analyst_hold :analyst_sell :analyst_strong_sell]}}))
     ;; store fundamentals history
     (jdbc/execute!
@@ -99,8 +101,9 @@
      (sql/format
       {:insert-into   :market-sentinel.stock_fundamentals_history
        :values        (map
-                       (fn [{:keys [code trailing-pe forward-pe profit-margin dividend-yield operating-margin-ttm market-capitalization]}]
+                       (fn [{:keys [code updated-at trailing-pe forward-pe profit-margin dividend-yield operating-margin-ttm market-capitalization]}]
                          {:stock_ticker_code     code
+                          :date                  (LocalDate/parse updated-at)
                           :trailing_pe           trailing-pe
                           :forward_pe            forward-pe
                           :profit_margin         profit-margin
@@ -108,7 +111,7 @@
                           :operating_margin_ttm  operating-margin-ttm
                           :market_capitalization market-capitalization})
                        tickers-fundamentals)
-       :on-conflict   [:stock_ticker_code]
+       :on-conflict   [:stock_ticker_code :date]
        :do-update-set {:fields [:stock_ticker_code :trailing_pe :forward_pe :profit_margin :dividend_yield :operating_margin_ttm :market_capitalization :updated_at]}}))))
 
 (comment)
