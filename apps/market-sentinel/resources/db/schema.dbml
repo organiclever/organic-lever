@@ -71,8 +71,8 @@ Table market_sentinel.stock_consensus_history {
 // TODO: add unique identifier
 Table market_sentinel.stock_fundamentals_history {
   "stock_ticker_code" varchar [ref: > market_sentinel.stock_tickers.code]
-  "trailing_pe" varchar
-  "forward_pe" varchar
+  "trailing_pe" float
+  "forward_pe" float
   "profit_margin" float
   "dividend_yield" float
   "operating_margin_ttm" float
