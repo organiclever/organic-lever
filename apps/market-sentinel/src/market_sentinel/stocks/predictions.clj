@@ -23,24 +23,24 @@
      :growth       growth}))
 
 (def stock-params
-  (let [pe-nasdaq-avg            25.03
-        pe-snp-500-avg           23.27
-        pe-safety-margin-percent 33]
+  (let [pe-nasdaq-avg        25.03
+        pe-snp-500-avg       23.27
+        pe-safety-margin-pct 25]
     {:nasdaq-avg-pe     pe-nasdaq-avg
      :snp-500-avg-pe    pe-snp-500-avg
      :pe-healthy-target (*
                          pe-snp-500-avg
-                         (- 1 (/ pe-safety-margin-percent 100)))
+                         (- 1 (/ pe-safety-margin-pct 100)))
      :growth-6mo-weight 1
      :growth-1y-weight  2
      :growth-3y-weight  3
      :growth-5y-weight  5}))
 
-(defn get-1y-growth-expectation-percent [growth-1y-percent  growth-5y-percent]
+(defn get-1y-growth-expectation-pct [growth-1y-pct  growth-5y-pct]
   (let [growth-1y-weight (:growth-1y-weight stock-params)
         growth-5y-weight (:growth-5y-weight stock-params)
-        term-1y          (* (+ 1 (/ growth-1y-percent 100)) growth-1y-weight)
-        avg-growth-5y    (Math/pow (+ 1 (/ growth-5y-percent 100)) (/ 1 5))
+        term-1y          (* (+ 1 (/ growth-1y-pct 100)) growth-1y-weight)
+        avg-growth-5y    (Math/pow (+ 1 (/ growth-5y-pct 100)) (/ 1 5))
         term-5y          (* avg-growth-5y growth-5y-weight)
         numerator        (+ term-1y term-5y)
         denominator      (+ growth-1y-weight growth-5y-weight)]
@@ -50,27 +50,27 @@
   "predict-ticker will predict the future of a given ticker"
   [ticker-info]
   (let
-   [trailing-pe                   (get-in ticker-info [:fundamentals :trailing-pe])
-    forward-pe                    (get-in ticker-info [:fundamentals :forward-pe])
-    growth-1y-expectation-percent (get-1y-growth-expectation-percent
-                                   (:growth-1y-percent (:growth ticker-info))
-                                   (:growth-5y-percent (:growth ticker-info)))
-    pe-healthy-target             (:pe-healthy-target stock-params)]
+   [trailing-pe               (get-in ticker-info [:fundamentals :trailing-pe])
+    forward-pe                (get-in ticker-info [:fundamentals :forward-pe])
+    growth-1y-expectation-pct (get-1y-growth-expectation-pct
+                               (:growth-1y-pct (:growth ticker-info))
+                               (:growth-5y-pct (:growth ticker-info)))
+    pe-healthy-target         (:pe-healthy-target stock-params)]
 
     {:stock-ticker-code                (:code (:ticker ticker-info))
      :profit_prediction-by-trailing-pe (try
                                          (- (*
-                                             (+ 1 growth-1y-expectation-percent)
+                                             (+ 100 growth-1y-expectation-pct)
                                              (/ pe-healthy-target trailing-pe))
-                                            1)
+                                            100)
                                          (catch Exception _e nil))
      :profit_prediction-by-forward-pe  (try
                                          (- (*
-                                             (+ 1 growth-1y-expectation-percent)
+                                             (+ 100 growth-1y-expectation-pct)
                                              (/ pe-healthy-target forward-pe))
-                                            1)
+                                            100)
                                          (catch Exception _e nil))
-     :growth-1y-expectation            growth-1y-expectation-percent}))
+     :growth-1y-expectation            growth-1y-expectation-pct}))
 
 (defn store-tickers-predictions!
   "store-tickers-predictions! will store the predictions of the tickers in the database"

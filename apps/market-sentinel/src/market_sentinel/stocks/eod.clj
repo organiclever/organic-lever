@@ -102,8 +102,8 @@
     growth-1y   (get-growth eods-1y)
     growth-5y   (get-growth eods-5y)]
 
-    {:growth-1y-percent growth-1y
-     :growth-5y-percent growth-5y}))
+    {:growth-1y-pct growth-1y
+     :growth-5y-pct growth-5y}))
 
 (comment
   (->> "CELH"
