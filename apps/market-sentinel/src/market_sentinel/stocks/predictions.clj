@@ -45,7 +45,6 @@
         numerator        (+ term-1y term-5y)
         denominator      (+ growth-1y-weight growth-5y-weight)]
     (- (* 100 (- (/ numerator denominator) 1)) 1)))
-(get-1y-growth-expectation 109.64  5244.17)
 
 (defn predict-ticker
   "predict-ticker will predict the future of a given ticker"
