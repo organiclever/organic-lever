@@ -44,7 +44,8 @@
         term-5y          (* avg-growth-5y growth-5y-weight)
         numerator        (+ term-1y term-5y)
         denominator      (+ growth-1y-weight growth-5y-weight)]
-    (* 100 (- (/ numerator denominator) 1))))
+    (try (* 100 (- (/ numerator denominator) 1))
+         (catch Exception _e nil))))
 
 (defn predict-ticker
   "predict-ticker will predict the future of a given ticker"
@@ -55,21 +56,18 @@
     growth-1y-expectation-pct (get-1y-growth-expectation-pct
                                (:growth-1y-pct (:growth ticker-info))
                                (:growth-5y-pct (:growth ticker-info)))
-    pe-healthy-target         (:pe-healthy-target stock-params)]
+    pe-healthy-target         (:pe-healthy-target stock-params)
+    predict-profit            (fn [pe]
+                                (try
+                                  (- (*
+                                      (+ 100 growth-1y-expectation-pct)
+                                      (/ pe-healthy-target pe))
+                                     100)
+                                  (catch Exception _e nil)))]
 
     {:stock-ticker-code                (:code (:ticker ticker-info))
-     :profit_prediction-by-trailing-pe (try
-                                         (- (*
-                                             (+ 100 growth-1y-expectation-pct)
-                                             (/ pe-healthy-target trailing-pe))
-                                            100)
-                                         (catch Exception _e nil))
-     :profit_prediction-by-forward-pe  (try
-                                         (- (*
-                                             (+ 100 growth-1y-expectation-pct)
-                                             (/ pe-healthy-target forward-pe))
-                                            100)
-                                         (catch Exception _e nil))
+     :profit_prediction-by-trailing-pe (predict-profit trailing-pe)
+     :profit_prediction-by-forward-pe  (predict-profit forward-pe)
      :growth-1y-expectation            growth-1y-expectation-pct}))
 
 (defn store-tickers-predictions!
