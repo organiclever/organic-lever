@@ -64,8 +64,8 @@
                                  (catch Exception _e nil)))]
 
     {:stock-ticker-code                (:code (:ticker ticker-info))
-     :profit_prediction-by-trailing-pe (predict-profit trailing-pe)
-     :profit_prediction-by-forward-pe  (predict-profit forward-pe)
+     :profit-prediction-by-trailing-pe (predict-profit trailing-pe)
+     :profit-prediction-by-forward-pe  (predict-profit forward-pe)
      :growth-1y-prediction-pct         growth-1y-prediction-pct}))
 
 (defn store-tickers-predictions!
@@ -77,10 +77,10 @@
    (sql/format
     {:insert-into   :market-sentinel.stock_predictions
      :values        (map
-                     (fn [{:keys [stock-ticker-code profit_prediction-by-trailing-pe profit_prediction-by-forward-pe growth-1y-prediction-pct]}]
+                     (fn [{:keys [stock-ticker-code profit-prediction-by-trailing-pe profit-prediction-by-forward-pe growth-1y-prediction-pct]}]
                        {:stock_ticker_code                stock-ticker-code
-                        :profit_prediction_by_trailing_pe profit_prediction-by-trailing-pe
-                        :profit_prediction_by_forward_pe  profit_prediction-by-forward-pe
+                        :profit_prediction_by_trailing_pe profit-prediction-by-trailing-pe
+                        :profit_prediction_by_forward_pe  profit-prediction-by-forward-pe
                         :growth_1y_prediction             growth-1y-prediction-pct})
                      ticker-predictions)
      :on-conflict   [:stock_ticker_code]
