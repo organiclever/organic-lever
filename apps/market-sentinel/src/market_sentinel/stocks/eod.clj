@@ -5,7 +5,8 @@
             [market-sentinel.infra.db.core :refer [ds]]
             [market-sentinel.stocks.infra :refer [call-stocks-api]]
             [next.jdbc :as jdbc]
-            [next.jdbc.date-time])
+            [next.jdbc.date-time]
+            [next.jdbc.result-set :as rs])
   (:import [java.time LocalDate]))
 
 (defn fetch-ticker-eods
@@ -66,12 +67,47 @@
 
 (defn extract-eod-summary-for-ticker
   "extract-eod-summary-for-ticker will extract the summary of the end of day data for a given ticker"
-  [_stock-ticker-code]
-  ;; TODO: add data extraction logic here
-  {:1y-growth 0
-   :5y-growth 0})
+  [stock-ticker-code]
+  (let
+   [extract-eod (fn [minus-days]
+                  (jdbc/execute!
+                   ds
+                   (sql/format
+                    {:select   [:stock_ticker_code
+                                :date
+                                :open
+                                :high
+                                :low
+                                :close
+                                :adjusted_close
+                                :volume]
+                     :from     [:market-sentinel.stock_eods]
+                     :where    [:and
+                                [:= :stock_ticker_code stock-ticker-code]
+                                [:>= :date (LocalDate/parse
+                                            (str (-> (LocalDate/now)
+                                                     (.plusDays (* -1 minus-days)))))]]
+                     :order-by [[:date :desc]]})
+                   {:builder-fn rs/as-unqualified-lower-maps}))
+    get-growth  (fn [eods]
+                  ;; We use the adjusted_close to calculate the growth (including in the earliest-eod. This might result in accurate growth calculation, but it is good enough when we have long time horizonwe use the adjusted_close to calculate the growth, including in the earliest-eod. This might result inprecise calculations. But it is good enough when we have long time horizon.))
+                  (let [earliest-eod (last eods)
+                        latest-eod   (first eods)
+                        growth-ratio (/
+                                      (latest-eod :adjusted_close)
+                                      (earliest-eod :adjusted_close))]
+                    (* 100 (- growth-ratio 1))))
+    eods-1y     (extract-eod 365)
+    eods-5y     (extract-eod (* 365 5))
+    growth-1y   (get-growth eods-1y)
+    growth-5y   (get-growth eods-5y)]
+
+    {:growth-1y growth-1y
+     :growth-5y growth-5y}))
 
 (comment
+  (->> "CELH"
+       extract-eod-summary-for-ticker)
   (->> (fetch-tickers-eods 5 ["AAPL" "MSFT"])
        store-tickers-eods!)
   (->> (fetch-ticker-eods

@@ -132,7 +132,7 @@
    {:builder-fn rs/as-unqualified-lower-maps}))
 
 (defn extract-ticker-fundamentals "extract-ticker-fundamentals will extract all tickers fundamentals from the database"
-  [stock_ticker_code]
+  [stock-ticker-code]
   (->>
    (jdbc/execute!
     ds
@@ -146,7 +146,7 @@
                  :operating_margin_ttm
                  :market_capitalization]
       :from     [:market-sentinel.stock_fundamentals_history]
-      :where    [:= :stock_ticker_code stock_ticker_code]
+      :where    [:= :stock_ticker_code stock-ticker-code]
       :order-by [[:date :desc]]
       :limit    1})
     {:builder-fn rs/as-unqualified-lower-maps})
