@@ -129,7 +129,7 @@
               {:select [:%max.date]
                :from   [:market-sentinel.stock_fundamentals_history]
                :where  [:= :stock_ticker_code :sfh.stock_ticker_code]}]})
-   {:builder-fn rs/as-unqualified-lower-maps}))
+   {:builder-fn rs/as-unqualified-kebab-maps}))
 
 (defn extract-ticker-fundamentals "extract-ticker-fundamentals will extract all tickers fundamentals from the database"
   [stock-ticker-code]
@@ -149,7 +149,7 @@
       :where    [:= :stock_ticker_code stock-ticker-code]
       :order-by [[:date :desc]]
       :limit    1})
-    {:builder-fn rs/as-unqualified-lower-maps})
+    {:builder-fn rs/as-unqualified-kebab-maps})
    first))
 
 (defn extract-ticker-consensus
@@ -173,7 +173,7 @@
       :where    [:= :stock_ticker_code stock_ticker_code]
       :order-by [[:date :desc]]
       :limit    1})
-    {:builder-fn rs/as-unqualified-lower-maps})
+    {:builder-fn rs/as-unqualified-kebab-maps})
    first))
 
 (comment

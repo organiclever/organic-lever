@@ -88,14 +88,14 @@
                                             (str (-> (LocalDate/now)
                                                      (.plusDays (* -1 minus-days)))))]]
                      :order-by [[:date :desc]]})
-                   {:builder-fn rs/as-unqualified-lower-maps}))
+                   {:builder-fn rs/as-unqualified-kebab-maps}))
     get-growth  (fn [eods]
                   ;; We use the adjusted_close to calculate the growth (including in the earliest-eod. This might result in accurate growth calculation, but it is good enough when we have long time horizonwe use the adjusted_close to calculate the growth, including in the earliest-eod. This might result inprecise calculations. But it is good enough when we have long time horizon.))
                   (let [earliest-eod (last eods)
                         latest-eod   (first eods)
                         growth-ratio (/
-                                      (latest-eod :adjusted_close)
-                                      (earliest-eod :adjusted_close))]
+                                      (latest-eod :adjusted-close)
+                                      (earliest-eod :adjusted-close))]
                     (* 100 (- growth-ratio 1))))
     eods-1y     (extract-eod 365)
     eods-5y     (extract-eod (* 365 5))
