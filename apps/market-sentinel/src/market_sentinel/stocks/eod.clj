@@ -64,6 +64,13 @@
           :on-conflict   [:stock_ticker_code :date]
           :do-update-set {:fields [:stock_ticker_code :date :open :high :low :close :adjusted_close :volume]}}))))
 
+(defn extract-eod-summary-for-ticker
+  "extract-eod-summary-for-ticker will extract the summary of the end of day data for a given ticker"
+  [_stock-ticker-code]
+  ;; TODO: add data extraction logic here
+  {:1y-growth 0
+   :5y-growth 0})
+
 (comment
   (->> (fetch-tickers-eods 5 ["AAPL" "MSFT"])
        store-tickers-eods!)

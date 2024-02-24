@@ -3,7 +3,7 @@
             [market-sentinel.stocks.eod :refer [fetch-tickers-eods
                                                 store-tickers-eods!]]
             [market-sentinel.stocks.fundamentals
-             :refer [fetch-ticker-fundamentals get-ticker-fundamental
+             :refer [fetch-ticker-fundamentals clean-ticker-fundamental
                      store-tickers-fundamentals!]]
             [market-sentinel.stocks.tickers :refer [extract-all-stock-tickers]]))
 
@@ -50,7 +50,7 @@
        (map
         (fn [m] (->> (:code  m)
                      (fetch-ticker-fundamentals)
-                     (get-ticker-fundamental))))
+                     (clean-ticker-fundamental))))
        (store-tickers-fundamentals!))
   ;; get eod data
   (->> (extract-all-stock-tickers)

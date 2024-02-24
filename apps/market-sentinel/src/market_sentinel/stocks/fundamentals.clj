@@ -5,7 +5,8 @@
             [market-sentinel.infra.db.core :refer [ds]]
             [market-sentinel.stocks.infra :refer [call-stocks-api]]
             [market-sentinel.utils.col-extractor :refer [select-nested-keys-and-rename]]
-            [next.jdbc :as jdbc])
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs])
   (:import [java.time LocalDate]))
 
 (defn fetch-ticker-fundamentals
@@ -19,42 +20,37 @@
    :body
    (json/read-str :key-fn keyword)))
 
-(defn get-ticker-fundamental
-  "get-ticker-fundamental will extract cleaned fundamental data of a given ticker"
+(defn clean-ticker-fundamental
+  "clean-ticker-fundamental will extract cleaned fundamental data of a given ticker"
   [ticker-fundamental]
-  (let [picked-data  (->>
-                      ticker-fundamental
-                      (select-nested-keys-and-rename
-                       [[:name [:General :Name]]
-                        [:code [:General :Code]]
-                        [:description [:General :Description]]
-                        [:sector [:General :Sector]]
-                        [:industry [:General :Industry]]
-                        [:trailing-pe [:Valuation :TrailingPE]]
-                        [:forward-pe [:Valuation :ForwardPE]]
-                        [:profit-margin [:Highlights :ProfitMargin]]
-                        [:dividend-yield [:Highlights :DividendYield]]
-                        [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
-                        [:market-capitalization [:Highlights :MarketCapitalization]]
-                        [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
-                        [:analyst-rating [:AnalystRatings :Rating]]
-                        [:analyst-target-price [:AnalystRatings :TargetPrice]]
-                        [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
-                        [:analyst-buy [:AnalystRatings :Buy]]
-                        [:analyst-hold [:AnalystRatings :Hold]]
-                        [:analyst-sell [:AnalystRatings :Sell]]
-                        [:analyst-strong-sell [:AnalystRatings :StrongSell]]
-                        [:updated-at [:General :UpdatedAt]]]))
-        cleaned-data (merge
-                      picked-data
-                      {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
+  (let
+   [picked-data  (->>
+                  ticker-fundamental
+                  (select-nested-keys-and-rename
+                   [[:name [:General :Name]]
+                    [:code [:General :Code]]
+                    [:description [:General :Description]]
+                    [:sector [:General :Sector]]
+                    [:industry [:General :Industry]]
+                    [:trailing-pe [:Valuation :TrailingPE]]
+                    [:forward-pe [:Valuation :ForwardPE]]
+                    [:profit-margin [:Highlights :ProfitMargin]]
+                    [:dividend-yield [:Highlights :DividendYield]]
+                    [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
+                    [:market-capitalization [:Highlights :MarketCapitalization]]
+                    [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
+                    [:analyst-rating [:AnalystRatings :Rating]]
+                    [:analyst-target-price [:AnalystRatings :TargetPrice]]
+                    [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
+                    [:analyst-buy [:AnalystRatings :Buy]]
+                    [:analyst-hold [:AnalystRatings :Hold]]
+                    [:analyst-sell [:AnalystRatings :Sell]]
+                    [:analyst-strong-sell [:AnalystRatings :StrongSell]]
+                    [:updated-at [:General :UpdatedAt]]]))
+    cleaned-data (merge
+                  picked-data
+                  {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
     (into  cleaned-data [])))
-
-;; TODO: finish this function
-(defn extract_ticker_fundamentals
-  "extract_ticker_fundamentals will extract the fundamentals of a given ticker from the database"
-  [ticker]
-  (println (str "Extracting fundamentals data for " ticker)))
 
 (defn store-tickers-fundamentals!
   "store-tickers-fundamentals will store the fundamentals of a given list of tickers"
@@ -114,4 +110,72 @@
        :on-conflict   [:stock_ticker_code :date]
        :do-update-set {:fields [:stock_ticker_code :trailing_pe :forward_pe :profit_margin :dividend_yield :operating_margin_ttm :market_capitalization :updated_at]}}))))
 
-(comment)
+(defn extract-all-tickers-fundamentals
+  "extract-all-tickers-fundamentals will extract all tickers fundamentals from the database"
+  []
+  (jdbc/execute!
+   ds
+   (sql/format
+    {:select [:stock_ticker_code
+              :date
+              :trailing_pe
+              :forward_pe
+              :profit_margin
+              :dividend_yield
+              :operating_margin_ttm
+              :market_capitalization]
+     :from   [[:market-sentinel.stock_fundamentals_history :sfh]]
+     :where  [:= :sfh.date
+              {:select [:%max.date]
+               :from   [:market-sentinel.stock_fundamentals_history]
+               :where  [:= :stock_ticker_code :sfh.stock_ticker_code]}]})
+   {:builder-fn rs/as-unqualified-lower-maps}))
+
+(defn extract-ticker-fundamentals "extract-ticker-fundamentals will extract all tickers fundamentals from the database"
+  [stock_ticker_code]
+  (->>
+   (jdbc/execute!
+    ds
+    (sql/format
+     {:select   [:stock_ticker_code
+                 :date
+                 :trailing_pe
+                 :forward_pe
+                 :profit_margin
+                 :dividend-yield
+                 :operating_margin_ttm
+                 :market_capitalization]
+      :from     [:market-sentinel.stock_fundamentals_history]
+      :where    [:= :stock_ticker_code stock_ticker_code]
+      :order-by [[:date :desc]]
+      :limit    1})
+    {:builder-fn rs/as-unqualified-lower-maps})
+   first))
+
+(defn extract-ticker-consensus
+  "extract-ticker-consensus will extract all tickers consensus from the database"
+  [stock_ticker_code]
+  (->>
+   (jdbc/execute!
+    ds
+    (sql/format
+     {:select   [:stock_ticker_code
+                 :wallstreet-target-price
+                 :analyst-rating
+                 :analyst-target-price
+                 :analyst-strong-buy
+                 :analyst-buy
+                 :analyst-hold
+                 :analyst-sell
+                 :analyst-strong-sell
+                 :date]
+      :from     [:market-sentinel.stock_consensus_history]
+      :where    [:= :stock_ticker_code stock_ticker_code]
+      :order-by [[:date :desc]]
+      :limit    1})
+    {:builder-fn rs/as-unqualified-lower-maps})
+   first))
+
+(comment
+  (extract-ticker-fundamentals "CELH")
+  (extract-ticker-consensus "CELH"))
