@@ -36,7 +36,7 @@
      :growth-3y-weight  3
      :growth-5y-weight  5}))
 
-(defn get-1y-growth-expectation [growth-1y-percent  growth-5y-percent]
+(defn get-1y-growth-expectation-percent [growth-1y-percent  growth-5y-percent]
   (let [growth-1y-weight (:growth-1y-weight stock-params)
         growth-5y-weight (:growth-5y-weight stock-params)
         term-1y          (* (+ 1 (/ growth-1y-percent 100)) growth-1y-weight)
@@ -44,7 +44,7 @@
         term-5y          (* avg-growth-5y growth-5y-weight)
         numerator        (+ term-1y term-5y)
         denominator      (+ growth-1y-weight growth-5y-weight)]
-    (- (* 100 (- (/ numerator denominator) 1)) 1)))
+    (* 100 (- (/ numerator denominator) 1))))
 
 (defn predict-ticker
   "predict-ticker will predict the future of a given ticker"
@@ -52,7 +52,7 @@
   (let
    [trailing-pe                   (get-in ticker-info [:fundamentals :trailing-pe])
     forward-pe                    (get-in ticker-info [:fundamentals :forward-pe])
-    growth-1y-expectation-percent (get-1y-growth-expectation
+    growth-1y-expectation-percent (get-1y-growth-expectation-percent
                                    (:growth-1y-percent (:growth ticker-info))
                                    (:growth-5y-percent (:growth ticker-info)))
     pe-healthy-target             (:pe-healthy-target stock-params)]
