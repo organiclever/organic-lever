@@ -1,6 +1,7 @@
 (ns market-sentinel.stocks.predictions
   (:require [honey.sql :as sql]
             [market-sentinel.infra.db.core :refer [ds]]
+            [market-sentinel.stocks.config :refer [stock-market-config]]
             [market-sentinel.stocks.eod :refer [extract-eod-summary-for-ticker]]
             [market-sentinel.stocks.fundamentals :refer [extract-ticker-consensus
                                                          extract-ticker-fundamentals]]
@@ -22,21 +23,9 @@
      :consensus    consensus
      :growth       growth}))
 
-(def stock-params
-  (let [pe-nasdaq-avg        25.03
-        pe-snp-500-avg       23.27
-        pe-safety-margin-pct 25]
-    {:nasdaq-avg-pe     pe-nasdaq-avg
-     :snp-500-avg-pe    pe-snp-500-avg
-     :pe-healthy-target (*
-                         pe-snp-500-avg
-                         (- 1 (/ pe-safety-margin-pct 100)))
-     :growth-1y-weight  2
-     :growth-5y-weight  5}))
-
 (defn predict-1y-growth-pct [growth-1y-pct  growth-5y-pct]
-  (let [growth-1y-weight  (:growth-1y-weight stock-params)
-        growth-5y-weight  (:growth-5y-weight stock-params)
+  (let [growth-1y-weight  (:growth-1y-weight stock-market-config)
+        growth-5y-weight  (:growth-5y-weight stock-market-config)
         growth-1y-contrib (* (+ 1 (/ growth-1y-pct 100)) growth-1y-weight)
         avg-growth-5y     (Math/pow (+ 1 (/ growth-5y-pct 100)) (/ 1 5))
         growth-5y-contrib (* avg-growth-5y growth-5y-weight)
@@ -51,7 +40,7 @@
   (let
    [trailing-pe              (get-in ticker-info [:fundamentals :trailing-pe])
     forward-pe               (get-in ticker-info [:fundamentals :forward-pe])
-    pe-healthy-target        (:pe-healthy-target stock-params)
+    pe-healthy-target        (:pe-healthy-target stock-market-config)
     growth-1y-prediction-pct (predict-1y-growth-pct
                               (:growth-1y-pct (:growth ticker-info))
                               (:growth-5y-pct (:growth ticker-info)))
