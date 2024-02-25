@@ -50,3 +50,4 @@
               :analyst-strong-sell     5
               :updated-at              "2021-08-01"}
              cleaned-data)))))
+;; => #'market-sentinel.stocks.fundamentals-test/clean-ticker-fundamental-test
