@@ -20,3 +20,4 @@ profiles.clj
 scratch.clj
 secrets
 app_secrets.edn
+.idea
