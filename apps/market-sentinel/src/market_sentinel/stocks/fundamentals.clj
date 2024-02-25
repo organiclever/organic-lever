@@ -24,44 +24,44 @@
   "`clean-ticker-fundamental` will extract cleaned fundamental data of a given ticker. It will return nil if the data is not available or error occurred."
   [ticker-fundamental]
   (let
-   [picked-data  (try (->>
-                       ticker-fundamental
-                       (select-nested-keys-and-rename
-                        [[:name [:General :Name]]
-                         [:code [:General :Code]]
-                         [:description [:General :Description]]
-                         [:sector [:General :Sector]]
-                         [:industry [:General :Industry]]
-                         [:trailing-pe [:Valuation :TrailingPE]]
-                         [:forward-pe [:Valuation :ForwardPE]]
-                         [:profit-margin [:Highlights :ProfitMargin]]
-                         [:dividend-yield [:Highlights :DividendYield]]
-                         [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
-                         [:market-capitalization [:Highlights :MarketCapitalization]]
-                         [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
-                         [:analyst-rating [:AnalystRatings :Rating]]
-                         [:analyst-target-price [:AnalystRatings :TargetPrice]]
-                         [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
-                         [:analyst-buy [:AnalystRatings :Buy]]
-                         [:analyst-hold [:AnalystRatings :Hold]]
-                         [:analyst-sell [:AnalystRatings :Sell]]
-                         [:analyst-strong-sell [:AnalystRatings :StrongSell]]
-                         [:updated-at [:General :UpdatedAt]]]))
-                      (catch Exception _e nil))
+   [picked-data (try (->>
+                      ticker-fundamental
+                      (select-nested-keys-and-rename
+                       [[:name [:General :Name]]
+                        [:code [:General :Code]]
+                        [:description [:General :Description]]
+                        [:sector [:General :Sector]]
+                        [:industry [:General :Industry]]
+                        [:trailing-pe [:Valuation :TrailingPE]]
+                        [:forward-pe [:Valuation :ForwardPE]]
+                        [:profit-margin [:Highlights :ProfitMargin]]
+                        [:dividend-yield [:Highlights :DividendYield]]
+                        [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
+                        [:market-capitalization [:Highlights :MarketCapitalization]]
+                        [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
+                        [:analyst-rating [:AnalystRatings :Rating]]
+                        [:analyst-target-price [:AnalystRatings :TargetPrice]]
+                        [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
+                        [:analyst-buy [:AnalystRatings :Buy]]
+                        [:analyst-hold [:AnalystRatings :Hold]]
+                        [:analyst-sell [:AnalystRatings :Sell]]
+                        [:analyst-strong-sell [:AnalystRatings :StrongSell]]
+                        [:updated-at [:General :UpdatedAt]]]))
+                     (catch Exception _e nil))
     cleaned-data (try (merge
                        picked-data
                        {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})
                       (catch Exception _e nil))]
     (if (or (nil? cleaned-data) (every? nil? (vals picked-data)))
       nil
-      (into  cleaned-data []))))
+      (into cleaned-data []))))
 
 (defn store-tickers-fundamentals!
   "`store-tickers-fundamentals` will store the fundamentals of a given list of tickers"
   [tickers-fundamentals]
 
   (jdbc/with-transaction [tx ds]
-    ;; save general info
+                         ;; save general info
     (jdbc/execute!
      tx (sql/format
          {:insert-into   :market-sentinel.stock_general_info
@@ -75,7 +75,7 @@
                           tickers-fundamentals)
           :on-conflict   [:stock_ticker_code]
           :do-update-set {:fields [:stock_ticker_code :name :description :sector :industry]}}))
-    ;; save consensus history
+                         ;; save consensus history
     (jdbc/execute!
      tx
      (sql/format
@@ -95,7 +95,7 @@
                        tickers-fundamentals)
        :on-conflict   [:stock_ticker_code :date]
        :do-update-set {:fields [:stock_ticker_code :wallstreet_target_price :analyst_rating :analyst_target_price :analyst_strong_buy :analyst_buy :analyst_hold :analyst_sell :analyst_strong_sell]}}))
-    ;; store fundamentals history
+                         ;; store fundamentals history
     (jdbc/execute!
      tx
      (sql/format

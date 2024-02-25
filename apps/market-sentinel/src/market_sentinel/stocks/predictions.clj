@@ -15,42 +15,44 @@
   (println (str "Extracting fundamentals data for " (:code ticker) " of " (:exchange ticker)))
 
   (let [fundamentals (extract-ticker-fundamentals (:code ticker))
-        consensus    (extract-ticker-consensus (:code ticker))
-        growth       (extract-eod-summary-for-ticker (:code ticker))]
+        consensus (extract-ticker-consensus (:code ticker))
+        growth (extract-eod-summary-for-ticker (:code ticker))]
 
     {:ticker       ticker
      :fundamentals fundamentals
      :consensus    consensus
      :growth       growth}))
 
-(defn predict-1y-growth-pct [growth-1y-pct  growth-5y-pct]
-  (let [growth-1y-weight  (:growth-1y-weight stock-market-config)
-        growth-5y-weight  (:growth-5y-weight stock-market-config)
+;; TODO: create test
+(defn predict-1y-growth-pct [growth-1y-pct growth-5y-pct]
+  (let [growth-1y-weight (:growth-1y-weight stock-market-config)
+        growth-5y-weight (:growth-5y-weight stock-market-config)
         growth-1y-contrib (* (+ 1 (/ growth-1y-pct 100)) growth-1y-weight)
-        avg-growth-5y     (Math/pow (+ 1 (/ growth-5y-pct 100)) (/ 1 5))
+        avg-growth-5y (Math/pow (+ 1 (/ growth-5y-pct 100)) (/ 1 5))
         growth-5y-contrib (* avg-growth-5y growth-5y-weight)
-        numerator         (+ growth-1y-contrib growth-5y-contrib)
-        denominator       (+ growth-1y-weight growth-5y-weight)]
+        numerator (+ growth-1y-contrib growth-5y-contrib)
+        denominator (+ growth-1y-weight growth-5y-weight)]
     (try (* 100 (- (/ numerator denominator) 1))
          (catch Exception _e nil))))
 
+;; TODO: create test
 (defn predict-ticker
   "predict-ticker will predict the future of a given ticker"
   [ticker-info]
   (let
-   [trailing-pe              (get-in ticker-info [:fundamentals :trailing-pe])
-    forward-pe               (get-in ticker-info [:fundamentals :forward-pe])
-    pe-healthy-target        (:pe-healthy-target stock-market-config)
+   [trailing-pe (get-in ticker-info [:fundamentals :trailing-pe])
+    forward-pe (get-in ticker-info [:fundamentals :forward-pe])
+    pe-healthy-target (:pe-healthy-target stock-market-config)
     growth-1y-prediction-pct (predict-1y-growth-pct
                               (:growth-1y-pct (:growth ticker-info))
                               (:growth-5y-pct (:growth ticker-info)))
-    predict-profit           (fn [pe]
-                               (try
-                                 (- (*
-                                     (+ 100 growth-1y-prediction-pct)
-                                     (/ pe-healthy-target pe))
-                                    100)
-                                 (catch Exception _e nil)))]
+    predict-profit (fn [pe]
+                     (try
+                       (- (*
+                           (+ 100 growth-1y-prediction-pct)
+                           (/ pe-healthy-target pe))
+                          100)
+                       (catch Exception _e nil)))]
 
     {:stock-ticker-code                (:code (:ticker ticker-info))
      :profit-prediction-by-trailing-pe (predict-profit trailing-pe)
@@ -60,7 +62,6 @@
 (defn store-tickers-predictions!
   "store-tickers-predictions! will store the predictions of the tickers in the database"
   [ticker-predictions]
-
   (jdbc/execute!
    ds
    (sql/format

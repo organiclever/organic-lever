@@ -7,7 +7,7 @@
             [next.jdbc :as jdbc]
             [next.jdbc.date-time]
             [next.jdbc.result-set :as rs])
-  (:import [java.time LocalDate]))
+  (:import (java.time LocalDate)))
 
 (defn fetch-ticker-eods
   "`fetch-ticker-eods` will fetch the end of day data for a given ticker from the eodhd.com API. It will return the data as a Clojure map."
@@ -93,7 +93,7 @@
   "`get-avg-growth` will calculate the growth (in percent) of a given list of end of day data. We use the `adjusted_close` to calculate the growth (including in the `earliest-eod`). This might result in accurate growth calculation, but it is good enough when we have long time horizon."
   [eods]
   (let [earliest-eod (last eods)
-        latest-eod   (first eods)
+        latest-eod (first eods)
         growth-ratio (/
                       (latest-eod :adjusted-close)
                       (earliest-eod :adjusted-close))]
@@ -103,8 +103,8 @@
   "extract-eod-summary-for-ticker will extract the end of day summary for a given ticker from the database. It will return a map with the growth percentage for 1 year and 5 years."
   [stock-ticker-code]
   (let
-   [eods-1y   (extract-eod-for-ticker 365 stock-ticker-code)
-    eods-5y   (extract-eod-for-ticker (* 365 5) stock-ticker-code)
+   [eods-1y (extract-eod-for-ticker 365 stock-ticker-code)
+    eods-5y (extract-eod-for-ticker (* 365 5) stock-ticker-code)
     growth-1y (get-avg-growth eods-1y)
     growth-5y (get-avg-growth eods-5y)]
 
