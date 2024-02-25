@@ -114,6 +114,7 @@
        :on-conflict   [:stock_ticker_code :date]
        :do-update-set {:fields [:stock_ticker_code :trailing_pe :forward_pe :profit_margin :dividend_yield :operating_margin_ttm :market_capitalization :updated_at]}}))))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn extract-all-tickers-fundamentals
   "`extract-all-tickers-fundamentals` will extract all tickers fundamentals from the database"
   []
