@@ -20,8 +20,8 @@
     "prepare": "husky",
     "run:hello-world": "cd apps/hello-world && clj -X:run",
     "test:hello-world": "cd apps/hello-world && clj -X:test",
-    "test:market-sentinel:integration": "cd apps/market-sentinel && bin/kaocha unit && bin/kaocha integration",
-    "test:market-sentinel:unit": "cd apps/market-sentinel && bin/kaocha unit && bin/kaocha unit",
+    "test:market-sentinel:integration": "cd apps/market-sentinel && bin/kaocha integration",
+    "test:market-sentinel:unit": "cd apps/market-sentinel && bin/kaocha unit",
     "test": "concurrently npm:test:*"
   },
   "author": "",
