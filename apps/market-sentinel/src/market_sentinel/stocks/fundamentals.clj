@@ -21,39 +21,43 @@
    (json/read-str :key-fn keyword)))
 
 (defn clean-ticker-fundamental
-  "clean-ticker-fundamental will extract cleaned fundamental data of a given ticker"
+  "`clean-ticker-fundamental` will extract cleaned fundamental data of a given ticker. It will return nil if the data is not available or error occurred."
   [ticker-fundamental]
   (let
-   [picked-data  (->>
-                  ticker-fundamental
-                  (select-nested-keys-and-rename
-                   [[:name [:General :Name]]
-                    [:code [:General :Code]]
-                    [:description [:General :Description]]
-                    [:sector [:General :Sector]]
-                    [:industry [:General :Industry]]
-                    [:trailing-pe [:Valuation :TrailingPE]]
-                    [:forward-pe [:Valuation :ForwardPE]]
-                    [:profit-margin [:Highlights :ProfitMargin]]
-                    [:dividend-yield [:Highlights :DividendYield]]
-                    [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
-                    [:market-capitalization [:Highlights :MarketCapitalization]]
-                    [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
-                    [:analyst-rating [:AnalystRatings :Rating]]
-                    [:analyst-target-price [:AnalystRatings :TargetPrice]]
-                    [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
-                    [:analyst-buy [:AnalystRatings :Buy]]
-                    [:analyst-hold [:AnalystRatings :Hold]]
-                    [:analyst-sell [:AnalystRatings :Sell]]
-                    [:analyst-strong-sell [:AnalystRatings :StrongSell]]
-                    [:updated-at [:General :UpdatedAt]]]))
-    cleaned-data (merge
-                  picked-data
-                  {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})]
-    (into  cleaned-data [])))
+   [picked-data  (try (->>
+                       ticker-fundamental
+                       (select-nested-keys-and-rename
+                        [[:name [:General :Name]]
+                         [:code [:General :Code]]
+                         [:description [:General :Description]]
+                         [:sector [:General :Sector]]
+                         [:industry [:General :Industry]]
+                         [:trailing-pe [:Valuation :TrailingPE]]
+                         [:forward-pe [:Valuation :ForwardPE]]
+                         [:profit-margin [:Highlights :ProfitMargin]]
+                         [:dividend-yield [:Highlights :DividendYield]]
+                         [:operating-margin-ttm [:Highlights :OperatingMarginTTM]]
+                         [:market-capitalization [:Highlights :MarketCapitalization]]
+                         [:wallstreet-target-price [:Highlights :WallStreetTargetPrice]]
+                         [:analyst-rating [:AnalystRatings :Rating]]
+                         [:analyst-target-price [:AnalystRatings :TargetPrice]]
+                         [:analyst-strong-buy [:AnalystRatings :StrongBuy]]
+                         [:analyst-buy [:AnalystRatings :Buy]]
+                         [:analyst-hold [:AnalystRatings :Hold]]
+                         [:analyst-sell [:AnalystRatings :Sell]]
+                         [:analyst-strong-sell [:AnalystRatings :StrongSell]]
+                         [:updated-at [:General :UpdatedAt]]]))
+                      (catch Exception _e nil))
+    cleaned-data (try (merge
+                       picked-data
+                       {:dividend-yield (if (nil? (:dividend-yield picked-data)) 0 (:dividend-yield picked-data))})
+                      (catch Exception _e nil))]
+    (if (or (nil? cleaned-data) (every? nil? (vals picked-data)))
+      nil
+      (into  cleaned-data []))))
 
 (defn store-tickers-fundamentals!
-  "store-tickers-fundamentals will store the fundamentals of a given list of tickers"
+  "`store-tickers-fundamentals` will store the fundamentals of a given list of tickers"
   [tickers-fundamentals]
 
   (jdbc/with-transaction [tx ds]
@@ -111,7 +115,7 @@
        :do-update-set {:fields [:stock_ticker_code :trailing_pe :forward_pe :profit_margin :dividend_yield :operating_margin_ttm :market_capitalization :updated_at]}}))))
 
 (defn extract-all-tickers-fundamentals
-  "extract-all-tickers-fundamentals will extract all tickers fundamentals from the database"
+  "`extract-all-tickers-fundamentals` will extract all tickers fundamentals from the database"
   []
   (jdbc/execute!
    ds
