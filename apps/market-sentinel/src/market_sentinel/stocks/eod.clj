@@ -10,7 +10,7 @@
   (:import [java.time LocalDate]))
 
 (defn fetch-ticker-eods
-  "fetch-ticker-eod will fetch the end of day data for a given ticker from the eodhd.com API. It will return the data as a Clojure map."
+  "`fetch-ticker-eods` will fetch the end of day data for a given ticker from the eodhd.com API. It will return the data as a Clojure map."
   ([from to ticker]
    (println (str "Fetching eod data for " ticker " from " from " to " to))
    (->
@@ -29,7 +29,7 @@
     ticker)))
 
 (defn fetch-tickers-eods
-  "fetch-tickers-eod will fetch the end of day data for a given list of tickers from the eodhd.com API. It will return the data as a Clojure map."
+  "`fetch-tickers-eods` will fetch the end of day data for a given list of tickers from the eodhd.com API. It will return the data as a Clojure map."
   ([days-before tickers]
    (into {} (map (fn [ticker]
                    [ticker (fetch-ticker-eods days-before ticker)])

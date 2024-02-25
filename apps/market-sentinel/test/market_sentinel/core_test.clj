@@ -1,7 +1,5 @@
 (ns market-sentinel.core-test
-  #_{:clj-kondo/ignore [:unused-namespace]}
-  (:require [clojure.test :refer [deftest testing is]]
-            [market-sentinel.core :as sentinel-core]))
+  (:require [clojure.test :refer [deftest is testing]]))
 
 (deftest a-test
   (testing "placeholder test"

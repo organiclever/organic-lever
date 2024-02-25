@@ -3,7 +3,9 @@
             [clojure.test :refer [deftest is testing]]
             [market-sentinel.utils.test-runner :as test-runner]))
 
-(deftest setup-test
+(deftest
+  ^:integration
+  setup-test
   (testing "Setup should create the necessary directory and script file"
     (let [loc-prefix (str "test/tmp/" (.toString (java.util.UUID/randomUUID)))
           bin-dir    (str loc-prefix "/bin")

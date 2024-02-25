@@ -5,6 +5,7 @@
             [market-sentinel.utils.pretty-spit :refer [pretty-spit-edn pretty-spit-json]]))
 
 (deftest pretty-spit-edn-test
+  ^:integration
   (testing "pretty-spit-edn produce the correct output"
     (let [f-path "test/tmp/pretty_spitted_test.edn"
           a-coll {:a 1
@@ -13,7 +14,9 @@
       (is (= a-coll
              (edn/read-string (slurp f-path)))))))
 
-(deftest pretty-spit-json-test
+(deftest
+  ^:integration
+  pretty-spit-json-test
   (testing "pretty-spit-json-produce the correct output"
     (let [f-path "test/tmp/pretty_spitted_test.json"
           a-coll {:a 1
