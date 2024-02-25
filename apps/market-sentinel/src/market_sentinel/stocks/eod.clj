@@ -65,42 +65,48 @@
           :on-conflict   [:stock_ticker_code :date]
           :do-update-set {:fields [:stock_ticker_code :date :open :high :low :close :adjusted_close :volume]}}))))
 
+(defn extract-eod-for-ticker
+  "`extract-eod-for-ticker` will extract the end of day data for a given ticker from the database."
+  [minus-days stock-ticker-code]
+  (jdbc/execute!
+   ds
+   (sql/format
+    {:select   [:stock_ticker_code
+                :date
+                :open
+                :high
+                :low
+                :close
+                :adjusted_close
+                :volume]
+     :from     [:market-sentinel.stock_eods]
+     :where    [:and
+                [:= :stock_ticker_code stock-ticker-code]
+                [:>= :date (LocalDate/parse
+                            (str
+                             (-> (LocalDate/now)
+                                 (.plusDays (* -1 minus-days)))))]]
+     :order-by [[:date :desc]]})
+   {:builder-fn rs/as-unqualified-kebab-maps}))
+
+(defn get-avg-growth
+  "`get-avg-growth` will calculate the growth (in percent) of a given list of end of day data. We use the `adjusted_close` to calculate the growth (including in the `earliest-eod`). This might result in accurate growth calculation, but it is good enough when we have long time horizon."
+  [eods]
+  (let [earliest-eod (last eods)
+        latest-eod   (first eods)
+        growth-ratio (/
+                      (latest-eod :adjusted-close)
+                      (earliest-eod :adjusted-close))]
+    (* 100 (- growth-ratio 1))))
+
 (defn extract-eod-summary-for-ticker
-  "extract-eod-summary-for-ticker will extract the summary of the end of day data for a given ticker"
+  "extract-eod-summary-for-ticker will extract the end of day summary for a given ticker from the database. It will return a map with the growth percentage for 1 year and 5 years."
   [stock-ticker-code]
   (let
-   [extract-eod (fn [minus-days]
-                  (jdbc/execute!
-                   ds
-                   (sql/format
-                    {:select   [:stock_ticker_code
-                                :date
-                                :open
-                                :high
-                                :low
-                                :close
-                                :adjusted_close
-                                :volume]
-                     :from     [:market-sentinel.stock_eods]
-                     :where    [:and
-                                [:= :stock_ticker_code stock-ticker-code]
-                                [:>= :date (LocalDate/parse
-                                            (str (-> (LocalDate/now)
-                                                     (.plusDays (* -1 minus-days)))))]]
-                     :order-by [[:date :desc]]})
-                   {:builder-fn rs/as-unqualified-kebab-maps}))
-    get-growth  (fn [eods]
-                  ;; We use the adjusted_close to calculate the growth (including in the earliest-eod. This might result in accurate growth calculation, but it is good enough when we have long time horizonwe use the adjusted_close to calculate the growth, including in the earliest-eod. This might result inprecise calculations. But it is good enough when we have long time horizon.))
-                  (let [earliest-eod (last eods)
-                        latest-eod   (first eods)
-                        growth-ratio (/
-                                      (latest-eod :adjusted-close)
-                                      (earliest-eod :adjusted-close))]
-                    (* 100 (- growth-ratio 1))))
-    eods-1y     (extract-eod 365)
-    eods-5y     (extract-eod (* 365 5))
-    growth-1y   (get-growth eods-1y)
-    growth-5y   (get-growth eods-5y)]
+   [eods-1y   (extract-eod-for-ticker 365 stock-ticker-code)
+    eods-5y   (extract-eod-for-ticker (* 365 5) stock-ticker-code)
+    growth-1y (get-avg-growth eods-1y)
+    growth-5y (get-avg-growth eods-5y)]
 
     {:growth-1y-pct growth-1y
      :growth-5y-pct growth-5y}))
