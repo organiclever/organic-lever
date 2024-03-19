@@ -22,6 +22,7 @@
     "test:hello-world": "cd apps/hello-world && clj -X:test",
     "test:market-sentinel:integration": "cd apps/market-sentinel && bin/kaocha integration",
     "test:market-sentinel:unit": "cd apps/market-sentinel && bin/kaocha unit",
+    "test:trade-logger": "cd apps/organic-trading-log && npm run test",
     "test": "concurrently npm:test:*"
   },
   "author": "",
