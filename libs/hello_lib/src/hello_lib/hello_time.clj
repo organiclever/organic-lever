@@ -1,4 +1,4 @@
-(ns hello-lib.src.hello-time
+(ns hello-lib.hello-time
   (:require [java-time.api :as t]))
 
 (defn now
